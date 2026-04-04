@@ -1,0 +1,17 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../../vendor/crumbls/layup/resources/css/layup.css';
+@import '../../../../vendor/slimani/filament-media-manager/resources/css/media-manager.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+@source '../../../../vendor/bezhansalleh/filament-shield/resources/views/**/*.blade.php';
+@source '../../../../vendor/awcodes/botly/resources/views/**/*.blade.php';
+@source '../../../../vendor/awcodes/filament-quick-create/resources/**/*.blade.php';
+@source '../../../../vendor/awcodes/overlook/resources/**/*.blade.php';
+@source '../../../../vendor/datlechin/filament-menu-builder/resources/views/**/*.blade.php';
+@source '../../../../vendor/jeffgreco13/filament-breezy/resources/views/**/*.blade.php';
+@source '../../../../vendor/mradder/filament-logger/resources/views/**/*.blade.php';
+@source '../../../../vendor/crumbls/layup/resources/views/**/*.blade.php';
+@source '../../../../resources/views/mason/**/*.blade.php';
+@source '../../../../storage/layup-safelist.txt';
+@source '../../../../vendor/slimani/filament-media-manager/resources/**/*';
