@@ -12,7 +12,7 @@ class SitePolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('super_admin') && $user->can('ViewAny:Site');
+        return $user->can('ViewAny:Site');
     }
 
     public function view(User $user, Site $site): bool

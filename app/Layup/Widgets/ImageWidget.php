@@ -38,13 +38,14 @@ class ImageWidget extends BaseWidget
     public static function getFormSchema(): array
     {
         return [
-            MediaPicker::make('image')
+            MediaPicker::make('src')
                 ->label('Image')
                 ->required()
                 ->conversion('')
                 ->image()
                 ->imageEditor()
                 ->directory(fn (): string => 'Builder/Images')
+                ->saveRelationshipsUsing(null)
                 ->helperText('Upload a new image or reuse one from this site\'s asset library.'),
             TextInput::make('alt')
                 ->label('Alt text')
@@ -68,6 +69,7 @@ class ImageWidget extends BaseWidget
     public static function getDefaultData(): array
     {
         return [
+            'src' => null,
             'image' => null,
             'alt' => '',
             'caption' => '',
@@ -77,7 +79,7 @@ class ImageWidget extends BaseWidget
 
     public static function getPreview(array $data): string
     {
-        $label = static::describeImage($data['image'] ?? $data['src'] ?? null);
+        $label = static::describeImage($data['src'] ?? $data['image'] ?? null);
 
         return $label !== null ? 'Image: ' . $label : 'Image block';
     }
@@ -96,7 +98,7 @@ class ImageWidget extends BaseWidget
     public function render(): View
     {
         $data = $this->data;
-        $image = $data['image'] ?? $data['src'] ?? null;
+        $image = $data['src'] ?? $data['image'] ?? null;
 
         return view('mason.bricks.image', [
             'alt' => $data['alt'] ?? null,

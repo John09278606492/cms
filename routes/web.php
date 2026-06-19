@@ -2,9 +2,15 @@
 
 use App\Models\Setting;
 use App\Models\Site;
+use App\Support\CmsForgeBanner;
+use App\Support\SiteVisibility;
+use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    $platformPanel = Filament::getPanel('platform');
+    $adminPanel = Filament::getPanel('admin');
+
     return view('cms.platform', [
         'settings' => Setting::make([
             'site_name' => config('app.name'),
@@ -15,12 +21,19 @@ Route::get('/', function () {
             ->where('is_active', true)
             ->latest('updated_at')
             ->get(),
+        'cmsForgeBanner' => CmsForgeBanner::forLanding(
+            $platformPanel?->getLoginUrl(),
+            $adminPanel?->getLoginUrl(),
+        ),
+        'platformLoginUrl' => $platformPanel?->getLoginUrl(),
+        'siteOwnerLoginUrl' => $adminPanel?->getLoginUrl(),
+        'siteRegistrationUrl' => $adminPanel?->getRegistrationUrl(),
     ]);
 })->name('platform.home');
 
 Route::prefix('/sites/{site:slug}')->name('sites.')->group(function (): void {
     Route::get('/', function (Site $site) {
-        abort_unless($site->is_active, 404);
+        abort_unless(SiteVisibility::canView($site, auth()->user()), 404, 'This site is not currently active.');
 
         $settings = Setting::forSite($site);
         $homepage = $site->pages()
@@ -51,7 +64,7 @@ Route::prefix('/sites/{site:slug}')->name('sites.')->group(function (): void {
     })->name('home');
 
     Route::get('/blog', function (Site $site) {
-        abort_unless($site->is_active, 404);
+        abort_unless(SiteVisibility::canView($site, auth()->user()), 404, 'This site is not currently active.');
 
         $settings = Setting::forSite($site);
 
@@ -67,13 +80,15 @@ Route::prefix('/sites/{site:slug}')->name('sites.')->group(function (): void {
     })->name('blog.index');
 
     Route::get('/blog/{slug}', function (Site $site, string $slug) {
-        abort_unless($site->is_active, 404);
+        abort_unless(SiteVisibility::canView($site, auth()->user()), 404, 'This site is not currently active.');
 
         $post = $site->posts()
             ->with(['author', 'categories', 'tags', 'featuredImage'])
             ->where('slug', $slug)
             ->published()
-            ->firstOrFail();
+            ->first();
+
+        abort_if(blank($post), 404, 'Blog post not found.');
 
         return view('cms.post', [
             'site' => $site,
@@ -87,9 +102,10 @@ Route::prefix('/sites/{site:slug}')->name('sites.')->group(function (): void {
             $post = $site->posts()
                 ->with(['author', 'categories', 'tags', 'featuredImage'])
                 ->where('slug', $slug)
-                ->firstOrFail();
+                ->first();
 
-            abort_if($post->trashed(), 404);
+            abort_if(blank($post), 404, 'Preview post not found.');
+            abort_if($post->trashed(), 404, 'This preview is no longer available.');
 
             return view('cms.post', [
                 'site' => $site,
@@ -102,9 +118,10 @@ Route::prefix('/sites/{site:slug}')->name('sites.')->group(function (): void {
             $page = $site->pages()
                 ->with(['author', 'featuredImage'])
                 ->where('slug', $slug)
-                ->firstOrFail();
+                ->first();
 
-            abort_if($page->trashed(), 404);
+            abort_if(blank($page), 404, 'Preview page not found.');
+            abort_if($page->trashed(), 404, 'This preview is no longer available.');
 
             return view('cms.page', [
                 'site' => $site,
@@ -115,13 +132,15 @@ Route::prefix('/sites/{site:slug}')->name('sites.')->group(function (): void {
     });
 
     Route::get('/pages/{slug}', function (Site $site, string $slug) {
-        abort_unless($site->is_active, 404);
+        abort_unless(SiteVisibility::canView($site, auth()->user()), 404, 'This site is not currently active.');
 
         $page = $site->pages()
             ->with(['author', 'featuredImage'])
             ->where('slug', $slug)
             ->published()
-            ->firstOrFail();
+            ->first();
+
+        abort_if(blank($page), 404, 'Page not found.');
 
         return view('cms.page', [
             'site' => $site,

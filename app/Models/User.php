@@ -55,7 +55,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName, 
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasAnyRole(['super_admin', 'panel_user', 'site_owner']);
+        return match ($panel->getId()) {
+            'platform' => $this->hasRole('super_admin'),
+            'admin' => $this->hasAnyRole(['super_admin', 'panel_user', 'site_owner']),
+            default => false,
+        };
     }
 
     public function getFilamentAvatarUrl(): ?string
@@ -105,6 +109,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName, 
         }
 
         return $this->hasRole('super_admin')
+            || $this->ownedSites()->whereKey($tenant->getKey())->exists()
             || $this->sites()->whereKey($tenant->getKey())->exists();
     }
 
@@ -116,13 +121,24 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName, 
                 ->get();
         }
 
-        return $this->sites()
+        return $this->ownedSites()
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->concat(
+                $this->sites()
+                    ->orderBy('name')
+                    ->get(),
+            )
+            ->unique('id')
+            ->values();
     }
 
     public function getDefaultTenant(Panel $panel): ?Model
     {
+        if ($this->hasRole('super_admin')) {
+            return Site::query()->orderBy('name')->first();
+        }
+
         return $this->ownedSites()->orderBy('name')->first()
             ?? $this->sites()->orderBy('name')->first();
     }

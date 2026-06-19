@@ -5,8 +5,10 @@ namespace App\Filament\Widgets;
 use App\Enums\ContentStatus;
 use App\Filament\Resources\Posts\PostResource;
 use App\Models\Post;
+use App\Models\Site;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Facades\Filament;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -21,7 +23,9 @@ class RecentContent extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => Post::query()->with(['author', 'categories'])->latest('updated_at'))
+            ->query(fn (): Builder => $this->scopeToTenant(
+                Post::query()->with(['author', 'categories'])->latest('updated_at'),
+            ))
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
@@ -44,11 +48,38 @@ class RecentContent extends TableWidget
             ->headerActions([
                 Action::make('createPost')
                     ->label('New post')
-                    ->url(PostResource::getUrl('create')),
+                    ->url(fn (): ?string => $this->resourceUrl('create')),
             ])
             ->recordActions([
                 EditAction::make()
-                    ->url(fn (Post $record): string => PostResource::getUrl('edit', ['record' => $record])),
+                    ->url(fn (Post $record): ?string => $this->resourceUrl('edit', ['record' => $record])),
             ]);
+    }
+
+    protected function resourceUrl(string $page = 'index', array $parameters = []): ?string
+    {
+        $tenant = Filament::getTenant();
+
+        if (! $tenant instanceof Site) {
+            return null;
+        }
+
+        return PostResource::getUrl(
+            $page,
+            $parameters,
+            panel: Filament::getCurrentOrDefaultPanel()->getId(),
+            tenant: $tenant,
+        );
+    }
+
+    protected function scopeToTenant(Builder $query): Builder
+    {
+        $tenant = Filament::getTenant();
+
+        if (! $tenant instanceof Site) {
+            return $query;
+        }
+
+        return $query->whereBelongsTo($tenant, 'site');
     }
 }

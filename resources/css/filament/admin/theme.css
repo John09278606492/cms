@@ -8,6 +8,7 @@
 @source '../../../../vendor/awcodes/botly/resources/views/**/*.blade.php';
 @source '../../../../vendor/awcodes/filament-quick-create/resources/**/*.blade.php';
 @source '../../../../vendor/awcodes/overlook/resources/**/*.blade.php';
+@source '../../../../vendor/codewithdennis/filament-simple-alert/resources/**/*.blade.php';
 @source '../../../../vendor/datlechin/filament-menu-builder/resources/views/**/*.blade.php';
 @source '../../../../vendor/jeffgreco13/filament-breezy/resources/views/**/*.blade.php';
 @source '../../../../vendor/mradder/filament-logger/resources/views/**/*.blade.php';
@@ -15,3 +16,21 @@
 @source '../../../../resources/views/mason/**/*.blade.php';
 @source '../../../../storage/layup-safelist.txt';
 @source '../../../../vendor/slimani/filament-media-manager/resources/**/*';
+
+@layer components {
+    .cms-forge-panel-alert-stack {
+        position: sticky;
+        top: calc(4rem + 0.75rem);
+        z-index: 20;
+        margin-bottom: 1.5rem;
+        @apply flex flex-col gap-3 rounded-3xl border border-gray-200/70 bg-white/80 p-3 shadow-sm ring-1 ring-gray-950/5 backdrop-blur-xl dark:border-white/10 dark:bg-gray-950/80 dark:ring-white/10;
+    }
+
+    .cms-forge-panel-alert-stack > .fi-wi-widget {
+        @apply w-full;
+    }
+
+    .cms-forge-panel-alert-stack:not(:has(> .fi-wi-widget:not([hidden]))) {
+        display: none;
+    }
+}

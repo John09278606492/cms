@@ -3,15 +3,19 @@
 namespace App\Providers;
 
 use App\Models\Menu;
+use App\Policies\ActivityPolicy;
 use App\Models\Site;
 use App\Support\SiteNavigation;
+use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Gate;
 use Slimani\MediaManager\Models\File as MediaFile;
 use Slimani\MediaManager\Models\Folder as MediaFolder;
+use Spatie\Activitylog\Models\Activity;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        Gate::policy(Activity::class, ActivityPolicy::class);
     }
 
     /**
@@ -28,6 +32,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Roles and permissions are managed globally on the platform panel, never
+        // per-tenant. Shield only registers its plugin on the platform panel, so on
+        // the tenant-aware admin panel the resource would otherwise fall back to
+        // Filament's default tenant scoping and try to filter roles by site_id.
+        RoleResource::scopeToTenant(false);
+
         $resolveMediaSite = static function (): ?Site {
             if (app()->runningInConsole()) {
                 return null;

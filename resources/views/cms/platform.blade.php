@@ -1,19 +1,30 @@
 @extends('layouts.site')
 
 @section('content')
+    @if (filled($cmsForgeBanner ?? null))
+        @include('filament.partials.cms-forge-banner', ['banner' => $cmsForgeBanner])
+    @endif
+
     <section class="mx-auto max-w-6xl px-6 py-16">
         <div class="grid gap-10 lg:grid-cols-[1.4fr,1fr]">
             <div class="space-y-6">
-                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">Platform</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">Two panels</p>
                 <h1 class="max-w-3xl text-5xl font-semibold tracking-tight text-stone-950">
-                    Build and manage tenant-owned websites from one Laravel CMS.
+                    A platform console for super admins and a separate workspace for site owners.
                 </h1>
                 <p class="max-w-2xl text-lg leading-8 text-stone-600">
-                    Super admins oversee the platform, while each registered user gets their own CMS workspace for pages, posts, menus, and settings.
+                    Super admins manage sites, users, and activity from a dedicated Filament panel, while site owners stay inside their own tenant workspace for pages, posts, menus, media, and settings.
                 </p>
                 <div class="flex flex-wrap gap-3">
-                    <a href="/admin/register" class="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white">Create an account</a>
-                    <a href="/admin" class="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700">Admin login</a>
+                    @if (filled($platformLoginUrl))
+                        <a href="{{ $platformLoginUrl }}" class="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white">Platform login</a>
+                    @endif
+                    @if (filled($siteOwnerLoginUrl))
+                        <a href="{{ $siteOwnerLoginUrl }}" class="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700">Site owner login</a>
+                    @endif
+                    @if (filled($siteRegistrationUrl))
+                        <a href="{{ $siteRegistrationUrl }}" class="rounded-full border border-amber-300 bg-amber-50 px-5 py-3 text-sm font-medium text-amber-900">Create an account</a>
+                    @endif
                 </div>
             </div>
 

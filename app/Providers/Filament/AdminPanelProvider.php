@@ -2,30 +2,33 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\Login as PanelLogin;
 use App\Filament\Auth\Register;
+use App\Filament\Pages\Tenancy\EditSiteProfile;
+use App\Filament\Pages\Tenancy\RegisterSite;
+use App\Filament\Widgets\CmsForgeAlertWidget;
+use App\Filament\Widgets\SiteStatusAlertWidget;
 use App\Filament\Plugins\LayupPageBuilderPlugin;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
+use App\Filament\Resources\Settings\SettingResource;
 use App\Filament\Resources\Tags\TagResource;
-use App\Filament\Resources\Users\UserResource;
+use App\Filament\Widgets\ContentStatsOverview;
+use App\Filament\Widgets\RecentContent;
 use App\Layup\Widgets\CallToActionWidget;
 use App\Layup\Widgets\FeatureGridWidget;
 use App\Layup\Widgets\HeroWidget;
 use App\Layup\Widgets\ImageWidget;
 use App\Layup\Widgets\RichTextWidget;
-use App\Filament\Widgets\ContentStatsOverview;
-use App\Filament\Widgets\RecentContent;
-use App\Filament\Pages\Tenancy\EditSiteProfile;
-use App\Filament\Pages\Tenancy\RegisterSite;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Site;
+use App\Support\SiteStatusBanner;
 use Awcodes\Overlook\OverlookPlugin;
 use Awcodes\Overlook\Widgets\OverlookWidget;
 use Awcodes\QuickCreate\QuickCreatePlugin;
-use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Datlechin\FilamentMenuBuilder\FilamentMenuBuilderPlugin;
 use Datlechin\FilamentMenuBuilder\MenuPanel\ModelMenuPanel;
 use Datlechin\FilamentMenuBuilder\MenuPanel\StaticMenuPanel;
@@ -38,6 +41,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -46,7 +50,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
-use MrAdder\FilamentLogger\Widgets\ActivityOverviewWidget;
 use Slimani\MediaManager\MediaManagerPlugin;
 
 class AdminPanelProvider extends PanelProvider
@@ -59,7 +62,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->brandName('CMS Forge')
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->login()
+            ->login(PanelLogin::class)
             ->registration(Register::class)
             ->tenant(Site::class, slugAttribute: 'slug', ownershipRelationship: 'site')
             ->tenantRoutePrefix('site')
@@ -70,9 +73,12 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->resources([
-                config('filament-logger.activity_resource'),
+                PostResource::class,
+                PageResource::class,
+                CategoryResource::class,
+                TagResource::class,
+                SettingResource::class,
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
@@ -82,9 +88,16 @@ class AdminPanelProvider extends PanelProvider
                 AccountWidget::class,
                 OverlookWidget::class,
                 ContentStatsOverview::class,
-                ActivityOverviewWidget::class,
                 RecentContent::class,
             ])
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+                fn (): string => $this->renderCmsForgeAlert('admin', 'login'),
+            )
+            ->renderHook(
+                PanelsRenderHook::CONTENT_BEFORE,
+                fn (): string => $this->renderAdminContentBanners(),
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -97,9 +110,6 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->plugins([
-                FilamentShieldPlugin::make()
-                    // Roles and permissions are platform-level in this panel.
-                    ->scopeToTenant(false),
                 OverlookPlugin::make()
                     ->sort(0)
                     ->withoutTrashed()
@@ -108,7 +118,6 @@ class AdminPanelProvider extends PanelProvider
                         PageResource::class,
                         CategoryResource::class,
                         TagResource::class,
-                        UserResource::class,
                     ]),
                 QuickCreatePlugin::make()
                     ->label('New')
@@ -119,7 +128,6 @@ class AdminPanelProvider extends PanelProvider
                         PageResource::class,
                         CategoryResource::class,
                         TagResource::class,
-                        UserResource::class,
                     ]),
                 BreezyCore::make()
                     ->myProfile(
@@ -177,5 +185,51 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    private function renderCmsForgeAlert(string $panelId, string $context): string
+    {
+        return app('livewire')->mount(CmsForgeAlertWidget::class, [
+            'panelId' => $panelId,
+            'context' => $context,
+        ]);
+    }
+
+    private function renderAdminContentBanners(): string
+    {
+        $alerts = [$this->renderCmsForgeAlert('admin', 'dashboard')];
+        $site = Filament::getTenant();
+
+        if (! $site instanceof Site) {
+            return $this->renderAlertStack($alerts);
+        }
+
+        $banner = SiteStatusBanner::forSite(
+            $site,
+            Filament::getTenantProfileUrl(),
+            route('sites.home', $site),
+        );
+
+        if (filled($banner)) {
+            $alerts[] = app('livewire')->mount(SiteStatusAlertWidget::class, [
+                'banner' => $banner,
+            ]);
+        }
+
+        return $this->renderAlertStack($alerts);
+    }
+
+    /**
+     * @param  array<int, string>  $alerts
+     */
+    private function renderAlertStack(array $alerts): string
+    {
+        $alerts = array_values(array_filter($alerts, fn (string $alert): bool => filled(trim($alert))));
+
+        if ($alerts === []) {
+            return '';
+        }
+
+        return '<div class="cms-forge-panel-alert-stack">' . implode('', $alerts) . '</div>';
     }
 }

@@ -30,6 +30,7 @@
             ?? $settings->siteLogoUrl();
         $logoUrl = $settings->siteLogoUrl();
         $faviconUrl = $settings->siteFaviconUrl();
+        $dashboardUrl = $currentSite ? \Filament\Facades\Filament::getUrl($currentSite) : null;
     @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -78,7 +79,7 @@
 
                 @if ($currentSite && $canManageCurrentSite)
                     <div class="flex flex-wrap items-center gap-4 text-sm font-medium text-stone-500">
-                        <a href="{{ url("/admin/site/{$currentSite->slug}") }}" class="rounded-full border border-stone-300 px-4 py-2 text-stone-600 transition hover:border-stone-950 hover:text-stone-950">
+                        <a href="{{ $dashboardUrl }}" class="rounded-full border border-stone-300 px-4 py-2 text-stone-600 transition hover:border-stone-950 hover:text-stone-950">
                             Dashboard
                         </a>
                     </div>

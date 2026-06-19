@@ -2,6 +2,13 @@
 
 @section('content')
     @php
+        $createPagesUrl = \App\Filament\Resources\Pages\PageResource::getUrl('create', panel: 'admin', tenant: $site);
+        $createPostsUrl = \App\Filament\Resources\Posts\PostResource::getUrl('create', panel: 'admin', tenant: $site);
+        $manageMenusUrl = \Datlechin\FilamentMenuBuilder\Resources\MenuResource::getUrl('index', panel: 'admin', tenant: $site);
+        $blogUrl = route('sites.blog.index', $site);
+    @endphp
+
+    @php
         $canManageSite = auth()->user()?->canAccessTenant($site) ?? false;
     @endphp
 
@@ -24,9 +31,9 @@
                         <p class="text-sm leading-7 text-stone-600">
                             Create a homepage or another page first, then publish posts and organize the navigation only when you are ready.
                         </p>
-                        <a href="{{ url("/admin/site/{$site->slug}/pages") }}" class="rounded-2xl bg-stone-950 px-4 py-3 text-sm font-medium text-white">Create pages</a>
-                        <a href="{{ url("/admin/site/{$site->slug}/posts") }}" class="rounded-2xl border border-stone-200 px-4 py-3 text-sm font-medium text-stone-700">Write posts</a>
-                        <a href="{{ url("/admin/site/{$site->slug}/menus") }}" class="rounded-2xl border border-stone-200 px-4 py-3 text-sm font-medium text-stone-700">Manage menus</a>
+                        <a href="{{ $createPagesUrl }}" class="rounded-2xl bg-stone-950 px-4 py-3 text-sm font-medium text-white">Create pages</a>
+                        <a href="{{ $createPostsUrl }}" class="rounded-2xl border border-stone-200 px-4 py-3 text-sm font-medium text-stone-700">Write posts</a>
+                        <a href="{{ $manageMenusUrl }}" class="rounded-2xl border border-stone-200 px-4 py-3 text-sm font-medium text-stone-700">Manage menus</a>
                     </div>
                 @elseif ($posts->isNotEmpty())
                     <p class="text-sm font-semibold text-stone-500">Published Content</p>
@@ -34,7 +41,7 @@
                         <p class="text-sm leading-7 text-stone-600">
                             This site already has live posts. Use the navigation to explore the published content.
                         </p>
-                        <a href="{{ route('sites.blog.index', $site) }}" class="inline-flex rounded-2xl bg-stone-950 px-4 py-3 text-sm font-medium text-white">
+                        <a href="{{ $blogUrl }}" class="inline-flex rounded-2xl bg-stone-950 px-4 py-3 text-sm font-medium text-white">
                             View the blog
                         </a>
                     </div>

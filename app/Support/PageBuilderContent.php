@@ -330,8 +330,11 @@ class PageBuilderContent
      */
     protected static function normalizeImageData(array $data): array
     {
+        $image = $data['image'] ?? $data['src'] ?? null;
+
         return [
-            'image' => $data['image'] ?? $data['src'] ?? null,
+            'src' => $data['src'] ?? $image,
+            'image' => $image,
             'alt' => $data['alt'] ?? null,
             'caption' => $data['caption'] ?? null,
             'link_url' => $data['link_url'] ?? null,

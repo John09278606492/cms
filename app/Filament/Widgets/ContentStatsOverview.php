@@ -20,23 +20,56 @@ class ContentStatsOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
+        $postsQuery = $this->scopeToTenant(Post::query());
+        $pagesQuery = $this->scopeToTenant(Page::query());
+
+        $publishedPostsUrl = $this->resourceUrl(PostResource::class, 'index');
+        $pagesUrl = $this->resourceUrl(PageResource::class, 'index');
+
         return [
-            Stat::make('Published posts', (string) Post::query()->published()->count())
+            Stat::make('Published posts', (string) (clone $postsQuery)->published()->count())
                 ->description('Articles currently live')
                 ->color('success')
-                ->url(PostResource::getUrl('index')),
-            Stat::make('Editorial queue', (string) Post::query()->whereIn('status', ['draft', 'scheduled'])->count())
+                ->url($publishedPostsUrl),
+            Stat::make('Editorial queue', (string) (clone $postsQuery)->whereIn('status', ['draft', 'scheduled'])->count())
                 ->description('Draft and scheduled posts')
                 ->color('warning')
-                ->url(PostResource::getUrl('index')),
-            Stat::make('Published pages', (string) Page::query()->published()->count())
+                ->url($publishedPostsUrl),
+            Stat::make('Published pages', (string) (clone $pagesQuery)->published()->count())
                 ->description('Navigable site pages')
                 ->color('primary')
-                ->url(PageResource::getUrl('index')),
+                ->url($pagesUrl),
             Stat::make('Media assets', (string) $this->getTenantMediaCount())
                 ->description('Images and attachments in the library')
                 ->color('gray'),
         ];
+    }
+
+    protected function scopeToTenant(Builder $query): Builder
+    {
+        $tenant = Filament::getTenant();
+
+        if (! $tenant instanceof Site) {
+            return $query;
+        }
+
+        return $query->whereBelongsTo($tenant, 'site');
+    }
+
+    protected function resourceUrl(string $resource, string $page = 'index', array $parameters = []): ?string
+    {
+        $tenant = Filament::getTenant();
+
+        if (! $tenant instanceof Site) {
+            return null;
+        }
+
+        return $resource::getUrl(
+            $page,
+            $parameters,
+            panel: Filament::getCurrentOrDefaultPanel()->getId(),
+            tenant: $tenant,
+        );
     }
 
     protected function getTenantMediaCount(): int
