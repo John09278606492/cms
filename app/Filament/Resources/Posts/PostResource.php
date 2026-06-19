@@ -9,11 +9,14 @@ use App\Filament\Resources\Posts\Schemas\PostForm;
 use App\Filament\Resources\Posts\Tables\PostsTable;
 use App\Models\Post;
 use BackedEnum;
+use Closure;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PostResource extends Resource
@@ -60,5 +63,21 @@ class PostResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    /**
+     * Scope record route binding to the active tenant. Posts use a slug route
+     * key, and slugs are only unique per-site, so without this an URL slug that
+     * exists in several sites would resolve to another tenant's post.
+     */
+    public static function resolveRecordRouteBinding(int|string $key, ?Closure $modifyQuery = null): ?Model
+    {
+        return parent::resolveRecordRouteBinding($key, function (Builder $query) use ($modifyQuery): Builder {
+            if ($tenant = Filament::getTenant()) {
+                $query->whereBelongsTo($tenant, 'site');
+            }
+
+            return $modifyQuery ? ($modifyQuery($query) ?? $query) : $query;
+        });
     }
 }

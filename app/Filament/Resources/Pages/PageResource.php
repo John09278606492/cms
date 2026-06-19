@@ -9,11 +9,14 @@ use App\Filament\Resources\Pages\Schemas\PageForm;
 use App\Filament\Resources\Pages\Tables\PagesTable;
 use App\Models\Page;
 use BackedEnum;
+use Closure;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PageResource extends Resource
@@ -60,5 +63,21 @@ class PageResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    /**
+     * Scope record route binding to the active tenant. Pages use a slug route
+     * key, and slugs are only unique per-site, so without this an URL slug that
+     * exists in several sites would resolve to another tenant's page.
+     */
+    public static function resolveRecordRouteBinding(int|string $key, ?Closure $modifyQuery = null): ?Model
+    {
+        return parent::resolveRecordRouteBinding($key, function (Builder $query) use ($modifyQuery): Builder {
+            if ($tenant = Filament::getTenant()) {
+                $query->whereBelongsTo($tenant, 'site');
+            }
+
+            return $modifyQuery ? ($modifyQuery($query) ?? $query) : $query;
+        });
     }
 }

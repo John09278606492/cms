@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\ContentStatus;
 use App\Filament\Resources\ActivityResource;
 use App\Filament\Resources\ActivityResource\Pages\ListActivities as ActivityListActivitiesPage;
+use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Widgets\CmsForgeAlertWidget;
 use App\Filament\Widgets\ContentStatsOverview;
 use App\Filament\Widgets\RecentContent;
@@ -735,6 +736,40 @@ class TenancyTest extends TestCase
         $this->actingAs($owner)
             ->get("/sites/{$site->slug}")
             ->assertOk();
+    }
+
+    public function test_page_record_binding_is_scoped_to_the_active_tenant(): void
+    {
+        $siteA = Site::query()->create(['name' => 'Site A', 'slug' => 'binding-site-a', 'is_active' => true]);
+        $siteB = Site::query()->create(['name' => 'Site B', 'slug' => 'binding-site-b', 'is_active' => true]);
+
+        // Both tenants have a page sharing the slug "home".
+        $pageA = Page::query()->create([
+            'site_id' => $siteA->getKey(),
+            'title' => 'Home',
+            'slug' => 'home',
+            'status' => ContentStatus::Published,
+        ]);
+        $pageB = Page::query()->create([
+            'site_id' => $siteB->getKey(),
+            'title' => 'Home',
+            'slug' => 'home',
+            'status' => ContentStatus::Published,
+        ]);
+
+        $this->actingAs(User::query()->create([
+            'name' => 'Binding Tester',
+            'email' => 'binding-tester@example.test',
+            'password' => 'password',
+        ]));
+
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Filament::setTenant($siteB);
+        $this->assertSame($pageB->getKey(), PageResource::resolveRecordRouteBinding('home')?->getKey());
+
+        Filament::setTenant($siteA);
+        $this->assertSame($pageA->getKey(), PageResource::resolveRecordRouteBinding('home')?->getKey());
     }
 
     public function test_inactive_site_banner_is_built_for_the_panel(): void

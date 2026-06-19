@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Posts\Schemas;
 
 use App\Enums\ContentStatus;
-use Crumbls\Layup\Forms\Components\LayupBuilder;
+use App\Filament\Forms\Components\VisualPageBuilder;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -41,7 +41,7 @@ class PostForm
                         Textarea::make('excerpt')
                             ->rows(4)
                             ->columnSpanFull(),
-                        LayupBuilder::make('content')
+                        VisualPageBuilder::make('content')
                             ->label('Post builder')
                             ->helperText('Compose the article with rows, columns, and reusable widgets.'),
                         Select::make('categories')
