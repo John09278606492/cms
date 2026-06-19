@@ -7,9 +7,12 @@ use App\Models\Site;
 use App\Models\User;
 use App\Support\PageNavigationManager;
 use App\Support\SiteProvisioner;
+use Filament\Facades\Filament;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Once;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -45,6 +48,22 @@ class DatabaseSeeder extends Seeder
             'name' => 'site_owner',
             'guard_name' => 'web',
         ]);
+
+        // Shield permissions are not created automatically. Generate them for every
+        // panel (without touching the customised policy classes) so the role syncs
+        // below have something to assign on a fresh install. Shield memoises its
+        // entity discovery with once(), so the cache must be flushed between panels
+        // or only the first panel's resources would be generated.
+        foreach (array_keys(Filament::getPanels()) as $panelId) {
+            Once::flush();
+
+            Artisan::call('shield:generate', [
+                '--all' => true,
+                '--option' => 'permissions',
+                '--panel' => $panelId,
+                '--no-interaction' => true,
+            ]);
+        }
 
         $superAdminRole->syncPermissions(Permission::query()->pluck('name')->all());
         $admin->syncRoles([$superAdminRole]);
