@@ -3,10 +3,10 @@
 @section('content')
     <section class="mx-auto max-w-6xl px-6 py-16">
         <div class="max-w-3xl">
-            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">Blog</p>
-            <h1 class="mt-4 text-5xl font-semibold tracking-tight text-stone-950">Published posts</h1>
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">{{ $settings->site_tagline ?? 'Journal' }}</p>
+            <h1 class="mt-4 text-5xl font-semibold tracking-tight text-stone-950">Latest from {{ $settings->site_name ?? config('app.name') }}</h1>
             <p class="mt-4 text-lg leading-8 text-stone-600">
-                Explore the latest stories and updates managed through the Filament admin.
+                {{ $settings->meta_description ?: ($settings->site_description ?: 'Stories, field notes, and updates.') }}
             </p>
         </div>
 

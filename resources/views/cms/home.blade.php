@@ -15,7 +15,7 @@
     <section class="mx-auto max-w-6xl px-6 py-16">
         <div class="grid gap-10 lg:grid-cols-[1.5fr,1fr]">
             <div class="space-y-6">
-                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">Website Workspace</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">{{ $settings->site_tagline ?? 'Welcome' }}</p>
                 <h1 class="max-w-3xl text-5xl font-semibold tracking-tight text-stone-950">
                     {{ $settings->site_name ?? config('app.name') }}
                 </h1>

@@ -92,16 +92,45 @@
         @yield('content')
     </main>
 
-    @if ($footerMenuItems->isNotEmpty())
-        <footer class="border-t border-stone-200 bg-white">
-            <div class="mx-auto max-w-6xl px-6 py-8">
-                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-stone-400">Footer navigation</p>
-                <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    @include('layouts.partials.site-footer-menu-items', ['items' => $footerMenuItems])
+    <footer class="border-t border-stone-200 bg-white">
+        <div class="mx-auto max-w-6xl px-6 py-10">
+            <div class="grid gap-8 lg:grid-cols-[1.5fr,2fr]">
+                <div>
+                    <p class="text-xl font-semibold tracking-tight text-stone-950">{{ $settings->site_name ?? config('app.name') }}</p>
+                    @if (filled($settings->site_tagline))
+                        <p class="mt-1 text-sm text-stone-500">{{ $settings->site_tagline }}</p>
+                    @endif
+                    @if (filled($settings->site_description))
+                        <p class="mt-3 max-w-md text-sm leading-7 text-stone-600">{{ $settings->site_description }}</p>
+                    @endif
+                    <div class="mt-4 space-y-1 text-sm text-stone-500">
+                        @if (filled($settings->site_email))
+                            <p><a href="mailto:{{ $settings->site_email }}" class="hover:text-stone-950">{{ $settings->site_email }}</a></p>
+                        @endif
+                        @if (filled($settings->site_phone))
+                            <p>{{ $settings->site_phone }}</p>
+                        @endif
+                        @if (filled($settings->site_address))
+                            <p>{{ $settings->site_address }}</p>
+                        @endif
+                    </div>
                 </div>
+
+                @if ($footerMenuItems->isNotEmpty())
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-stone-400">Explore</p>
+                        <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            @include('layouts.partials.site-footer-menu-items', ['items' => $footerMenuItems])
+                        </div>
+                    </div>
+                @endif
             </div>
-        </footer>
-    @endif
+
+            <div class="mt-10 border-t border-stone-200 pt-6 text-sm text-stone-400">
+                &copy; {{ now()->year }} {{ $settings->site_name ?? config('app.name') }}. All rights reserved.
+            </div>
+        </div>
+    </footer>
 
     @layupScripts
 @stack('scripts')

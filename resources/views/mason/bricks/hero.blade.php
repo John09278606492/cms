@@ -9,6 +9,9 @@
     $copyClass = $surface === 'contrast' ? 'text-stone-200' : 'text-stone-600';
     $eyebrowClass = $surface === 'contrast' ? 'text-amber-300' : 'text-amber-700';
     $alignmentClass = $alignment === 'center' ? 'items-center text-center' : 'items-start text-left';
+    $primaryButtonClass = $surface === 'contrast'
+        ? 'bg-white text-stone-950 hover:bg-stone-100'
+        : 'bg-stone-950 text-white hover:bg-stone-800';
 @endphp
 
 <section class="rounded-[2rem] border px-8 py-12 shadow-sm {{ $containerClass }}">
@@ -30,7 +33,7 @@
                 @if (filled($primaryLabel))
                     <a
                         href="{{ $primaryUrl ?: '#' }}"
-                        class="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 {{ $surface === 'contrast' ? 'bg-white text-stone-950 hover:bg-stone-100' : '' }}"
+                        class="rounded-full px-5 py-3 text-sm font-medium transition {{ $primaryButtonClass }}"
                     >
                         {{ $primaryLabel }}
                     </a>

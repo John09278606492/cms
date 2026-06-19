@@ -2,7 +2,7 @@
 
 @section('content')
     <article class="mx-auto max-w-4xl px-6 py-16">
-        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">Post</p>
+        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-600">{{ $post->categories->first()?->name ?? $settings->site_tagline ?? 'Post' }}</p>
         <h1 class="mt-4 text-5xl font-semibold tracking-tight text-stone-950">{{ $post->title }}</h1>
 
         <div class="mt-6 flex flex-wrap items-center gap-3 text-sm text-stone-500">
@@ -11,6 +11,17 @@
                 <span>by {{ $post->author->name }}</span>
             @endif
         </div>
+
+        @if ($post->categories->isNotEmpty() || $post->tags->isNotEmpty())
+            <div class="mt-5 flex flex-wrap gap-2">
+                @foreach ($post->categories as $category)
+                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">{{ $category->name }}</span>
+                @endforeach
+                @foreach ($post->tags as $tag)
+                    <span class="rounded-full border border-stone-300 px-3 py-1 text-xs font-medium text-stone-600">#{{ $tag->name }}</span>
+                @endforeach
+            </div>
+        @endif
 
         @if (filled($post->excerpt))
             <p class="mt-6 text-lg leading-8 text-stone-600">{{ $post->excerpt }}</p>
