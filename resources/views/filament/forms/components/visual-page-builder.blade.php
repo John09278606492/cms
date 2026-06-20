@@ -57,6 +57,40 @@
             .lyp-sp-color { flex: 1; height: 30px; padding: 0; border: 1px solid rgba(128,128,128,0.3); border-radius: 6px; background: transparent; cursor: pointer; }
             .lyp-sp-clear { width: 26px; flex: 0 0 26px; border: 1px solid rgba(128,128,128,0.3); border-radius: 6px; background: transparent; cursor: pointer; opacity: 0.7; font-size: 14px; line-height: 1; }
             .lyp-widget--selected { outline: 2px solid #f59e0b; outline-offset: 2px; border-radius: 6px; }
+
+            /* ---- Elementor-style clean canvas: content edge-to-edge, chrome on hover ---- */
+            .lyp-canvas { padding: 0.75rem !important; }
+            .lyp-canvas-inner { padding: 0 !important; }
+            .lyp-ruler { display: none !important; }
+            .lyp-rows { padding: 0 !important; }
+            .lyp-row { padding: 0 !important; margin: 0 0 4px !important; border-color: transparent !important; background: transparent !important; position: relative; }
+            .lyp-row:hover { outline: 1px dashed rgba(245,158,11,0.35); outline-offset: -1px; }
+            .lyp-columns { gap: 4px !important; }
+            .lyp-col { padding: 0 !important; min-height: 2.5rem !important; border-color: transparent !important; background: transparent !important; position: relative; }
+            .lyp-widgets { gap: 0 !important; }
+            .lyp-widget { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; position: relative; }
+            .lyp-widget:hover { outline: 2px solid rgba(245,158,11,0.45); outline-offset: -2px; }
+            .lyp-widget--selected { outline: 2px solid #f59e0b !important; outline-offset: -2px !important; border-radius: 0 !important; }
+            .lyp-live-preview { border-radius: 0; }
+
+            /* Floating hover toolbars (don't consume layout width) */
+            .lyp-row-header, .lyp-col-header, .lyp-widget-header {
+                position: absolute; top: 0; right: 0; z-index: 6;
+                margin: 0 !important; padding: 2px 6px !important;
+                background: rgba(28,25,23,0.92); border-radius: 0 0 0 6px;
+                opacity: 0; pointer-events: none; transition: opacity 0.1s;
+            }
+            .lyp-row:hover > .lyp-row-header,
+            .lyp-col:hover > .lyp-col-header,
+            .lyp-widget:hover > .lyp-widget-header,
+            .lyp-widget--selected > .lyp-widget-header { opacity: 1; pointer-events: auto; }
+            .lyp-row-header *, .lyp-col-header *, .lyp-widget-header * { color: #fafaf9 !important; }
+            .lyp-row-label, .lyp-col-label, .lyp-widget-type { font-size: 10px !important; }
+            .lyp-col-header { top: auto; bottom: 0; right: auto; left: 0; border-radius: 0 6px 0 0; }
+
+            /* Subtle add-widget / insert affordances */
+            .lyp-add-widget { opacity: 0; padding: 0.25rem !important; margin-top: 2px; transition: opacity 0.1s; }
+            .lyp-col:hover .lyp-add-widget, .lyp-col:has(.lyp-widgets:empty) .lyp-add-widget { opacity: 0.65; }
         </style>
 
         {{-- Top Bar --}}
@@ -476,7 +510,7 @@
             widgetRegistry: config.widgetRegistry,
             translations: config.translations,
             widgetPreviews: config.widgetPreviews || {},
-            showRuler: true,
+            showRuler: false,
             saving: false,
 
             // Widget Picker
