@@ -11,15 +11,15 @@
 
 <section class="rounded-[2rem] border px-8 py-10 shadow-sm {{ $wrapperClass }}">
     @if (filled($eyebrow))
-        <p class="text-xs font-semibold uppercase tracking-[0.35em] {{ $eyebrowClass }}">{{ $eyebrow }}</p>
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] {{ $eyebrowClass }}" data-layup-edit="eyebrow">{{ $eyebrow }}</p>
     @endif
 
     @if (filled($heading))
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight">{{ $heading }}</h2>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight" data-layup-edit="heading">{{ $heading }}</h2>
     @endif
 
     @if (filled($copy))
-        <p class="mt-4 max-w-3xl text-base leading-8 {{ $copyClass }}">{{ $copy }}</p>
+        <p class="mt-4 max-w-3xl text-base leading-8 {{ $copyClass }}" data-layup-edit="copy">{{ $copy }}</p>
     @endif
 
     @if (filled($buttonLabel))

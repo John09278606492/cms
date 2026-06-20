@@ -17,15 +17,15 @@
 <section class="rounded-[2rem] border px-8 py-12 shadow-sm {{ $containerClass }}">
     <div class="flex max-w-3xl flex-col gap-6 {{ $alignmentClass }}">
         @if (filled($eyebrow))
-            <p class="text-xs font-semibold uppercase tracking-[0.35em] {{ $eyebrowClass }}">{{ $eyebrow }}</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] {{ $eyebrowClass }}" data-layup-edit="eyebrow">{{ $eyebrow }}</p>
         @endif
 
         @if (filled($heading))
-            <h2 class="text-4xl font-semibold tracking-tight sm:text-5xl {{ $headingClass }}">{{ $heading }}</h2>
+            <h2 class="text-4xl font-semibold tracking-tight sm:text-5xl {{ $headingClass }}" data-layup-edit="heading">{{ $heading }}</h2>
         @endif
 
         @if (filled($copy))
-            <p class="max-w-2xl text-lg leading-8 {{ $copyClass }}">{{ $copy }}</p>
+            <p class="max-w-2xl text-lg leading-8 {{ $copyClass }}" data-layup-edit="copy">{{ $copy }}</p>
         @endif
 
         @if (filled($primaryLabel) || filled($secondaryLabel))

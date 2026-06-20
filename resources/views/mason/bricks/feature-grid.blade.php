@@ -4,15 +4,15 @@
 
 <section class="rounded-[2rem] border border-stone-200 bg-white px-8 py-10 shadow-sm">
     @if (filled($eyebrow))
-        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700">{{ $eyebrow }}</p>
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700" data-layup-edit="eyebrow">{{ $eyebrow }}</p>
     @endif
 
     @if (filled($heading))
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950">{{ $heading }}</h2>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950" data-layup-edit="heading">{{ $heading }}</h2>
     @endif
 
     @if (filled($intro))
-        <p class="mt-4 max-w-3xl text-base leading-8 text-stone-600">{{ $intro }}</p>
+        <p class="mt-4 max-w-3xl text-base leading-8 text-stone-600" data-layup-edit="intro">{{ $intro }}</p>
     @endif
 
     @if (filled($items))

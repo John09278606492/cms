@@ -28,6 +28,10 @@
             .lyp-live-preview { pointer-events: none; overflow: hidden; border-radius: 0.5rem; }
             .lyp-live-preview > * { max-width: 100%; }
             .lyp-live-preview img { max-width: 100%; height: auto; }
+            /* Inline editing (M2): make annotated text directly editable. */
+            .lyp-live-preview [data-layup-edit] { pointer-events: auto; cursor: text; }
+            .lyp-live-preview [data-layup-edit]:hover { outline: 1px dashed rgba(245, 158, 11, 0.6); outline-offset: 3px; }
+            .lyp-live-preview [data-layup-edit]:focus { outline: 2px solid rgb(245, 158, 11); outline-offset: 3px; border-radius: 2px; }
         </style>
 
         {{-- Top Bar --}}
@@ -221,6 +225,9 @@
                                                                     @dragend="onDragEnd()"
                                                                     @dragover.prevent.stop="onDragOverWidget($event, row.id, col.id, widgetIndex)"
                                                                     @click.stop="widgetEdit(row.id, col.id, widget.id)"
+                                                                    :data-row-id="row.id"
+                                                                    :data-col-id="col.id"
+                                                                    :data-widget-id="widget.id"
                                                             >
                                                                 <div class="lyp-widget-header">
                                                                     <div style="display:flex;align-items:center;gap:0.375rem">
@@ -458,6 +465,8 @@
 
                 this.history = [JSON.parse(JSON.stringify(this.content))];
                 this.historyIndex = 0;
+
+                this.setupInlineEditing();
 
                 // Watch for Livewire saves
                 Livewire.hook('request', ({respond}) => {
@@ -1137,6 +1146,73 @@
 
             cancelInlineEdit() {
                 this.inlineEdit = { active: false, rowId: null, colId: null, widgetId: null, widgetType: null, originalData: null };
+            },
+
+            // ---- Milestone 2: inline text editing on the live preview ----
+            setupInlineEditing() {
+                const configure = (el) => {
+                    if (el.__lypEditable) return;
+                    el.__lypEditable = true;
+                    const isHtml = el.hasAttribute('data-layup-edit-html');
+                    el.setAttribute('contenteditable', isHtml ? 'true' : 'plaintext-only');
+                    el.classList.add('lyp-inline-editable');
+                    el.addEventListener('mousedown', (e) => e.stopPropagation());
+                    el.addEventListener('click', (e) => e.stopPropagation());
+                    el.addEventListener('keydown', (e) => {
+                        e.stopPropagation();
+                        if (e.key === 'Enter' && !isHtml) { e.preventDefault(); el.blur(); }
+                        if (e.key === 'Escape') { el.blur(); }
+                    });
+                    el.addEventListener('focusout', () => this.commitInlineField(el));
+                };
+                const scan = (node) => {
+                    if (!node || node.nodeType !== 1) return;
+                    if (node.matches && node.matches('[data-layup-edit]')) configure(node);
+                    node.querySelectorAll && node.querySelectorAll('[data-layup-edit]').forEach(configure);
+                };
+                this.$el.querySelectorAll('[data-layup-edit]').forEach(configure);
+                this._inlineObserver = new MutationObserver((mutations) => {
+                    mutations.forEach((m) => m.addedNodes.forEach(scan));
+                });
+                this._inlineObserver.observe(this.$el, { childList: true, subtree: true });
+            },
+
+            commitInlineField(el) {
+                const field = el.getAttribute('data-layup-edit');
+                const widgetEl = el.closest('.lyp-widget');
+                if (!field || !widgetEl) return;
+
+                const rowId = widgetEl.dataset.rowId;
+                const colId = widgetEl.dataset.colId;
+                const widgetId = widgetEl.dataset.widgetId;
+                const isHtml = el.hasAttribute('data-layup-edit-html');
+                const value = isHtml ? el.innerHTML : el.innerText.replace(/\s+\n/g, '\n').trim();
+
+                let changed = false;
+                this.content.rows = (this.content.rows || []).map((row) => {
+                    if (row.id !== rowId) return row;
+                    row.columns = (row.columns || []).map((col) => {
+                        if (col.id !== colId) return col;
+                        col.widgets = (col.widgets || []).map((widget) => {
+                            if (widget.id === widgetId) {
+                                widget.data = widget.data || {};
+                                if ((widget.data[field] ?? '') !== value) {
+                                    widget.data[field] = value;
+                                    changed = true;
+                                }
+                            }
+                            return widget;
+                        });
+                        return col;
+                    });
+                    return row;
+                });
+
+                if (!changed) return;
+
+                this.pushHistory();
+                // Write through to the Livewire state path so the edit persists on save.
+                $wire.set(this.statePath, JSON.parse(JSON.stringify(this.content)), false);
             },
 
             // Column resizing
