@@ -90,8 +90,8 @@
             .lyp-col-header { top: auto; bottom: 0; right: auto; left: 0; border-radius: 0 6px 0 0; }
 
             /* Subtle add-widget / insert affordances */
-            .lyp-add-widget { opacity: 0; padding: 0.25rem !important; margin-top: 2px; transition: opacity 0.1s; }
-            .lyp-col:hover .lyp-add-widget, .lyp-col:has(.lyp-widgets:empty) .lyp-add-widget { opacity: 0.65; }
+            .lyp-add-widget { opacity: 0.6 !important; width: 100% !important; padding: 0.45rem !important; margin-top: 4px; border: 1px dashed rgba(245,158,11,0.55) !important; border-radius: 6px; transition: opacity 0.1s; }
+            .lyp-col:hover .lyp-add-widget { opacity: 1 !important; }
 
             /* Full-screen editor (Elementor-style distraction-free mode) */
             .lyp-fs-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-size: 12px; font-weight: 500; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; background: transparent; cursor: pointer; }
@@ -300,7 +300,7 @@
                                                                     @dragstart="onDragStart($event, row.id, col.id, widget.id, widgetIndex)"
                                                                     @dragend="onDragEnd()"
                                                                     @dragover.prevent.stop="onDragOverWidget($event, row.id, col.id, widgetIndex)"
-                                                                    @click.stop="selectWidget(row.id, col.id, widget.id, widget.type)"
+                                                                    @click.stop="selectBlock(row.id, col.id, widget.id, widget.type)"
                                                                     :data-row-id="row.id"
                                                                     :data-col-id="col.id"
                                                                     :data-widget-id="widget.id"
@@ -1365,7 +1365,7 @@
             },
 
             // ---- Milestone 3: docked design panel ----
-            selectWidget(rowId, colId, widgetId, type) {
+            selectBlock(rowId, colId, widgetId, type) {
                 this.selected = { rowId, colId, widgetId, type };
             },
 
