@@ -6,6 +6,9 @@ use App\Enums\ContentStatus;
 use App\Filament\Resources\ActivityResource;
 use App\Filament\Resources\ActivityResource\Pages\ListActivities as ActivityListActivitiesPage;
 use App\Filament\Resources\Pages\PageResource;
+use App\Filament\Resources\Posts\PostResource;
+use App\Filament\Resources\Sites\SiteResource;
+use App\Filament\Resources\Users\UserResource;
 use App\Filament\Widgets\CmsForgeAlertWidget;
 use App\Filament\Widgets\ContentStatsOverview;
 use App\Filament\Widgets\RecentContent;
@@ -770,6 +773,19 @@ class TenancyTest extends TestCase
 
         Filament::setTenant($siteA);
         $this->assertSame($pageA->getKey(), PageResource::resolveRecordRouteBinding('home')?->getKey());
+    }
+
+    public function test_content_resources_are_tenant_scoped_but_platform_resources_are_not(): void
+    {
+        // Filament applies tenant scoping via a global scope that getEloquentQuery
+        // strips only when the resource is NOT scoped to the tenant. The isolation
+        // bug was a shared static being flipped off for every content resource, so
+        // guard the invariant directly.
+        $this->assertTrue(PageResource::isScopedToTenant(), 'Pages must be tenant-scoped');
+        $this->assertTrue(PostResource::isScopedToTenant(), 'Posts must be tenant-scoped');
+
+        $this->assertFalse(SiteResource::isScopedToTenant(), 'Sites are platform-level');
+        $this->assertFalse(UserResource::isScopedToTenant(), 'Users are platform-level');
     }
 
     public function test_inactive_site_banner_is_built_for_the_panel(): void

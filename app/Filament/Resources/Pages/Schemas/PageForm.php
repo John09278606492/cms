@@ -49,7 +49,11 @@ class PageForm
                 Section::make('Structure')
                     ->schema([
                         Select::make('parent_id')
-                            ->relationship('parent', 'title')
+                            ->relationship('parent', 'title', modifyQueryUsing: function (Builder $query): Builder {
+                                $tenant = Filament::getTenant();
+
+                                return $tenant ? $query->whereBelongsTo($tenant, 'site') : $query;
+                            })
                             ->searchable()
                             ->preload()
                             ->label('Parent page'),
