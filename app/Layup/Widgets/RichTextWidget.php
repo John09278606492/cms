@@ -82,6 +82,7 @@ class RichTextWidget extends BaseWidget
             'content' => $data['content'] ?? $data['text'] ?? null,
             'heading' => $data['heading'] ?? null,
             'width' => $data['width'] ?? 'content',
+            'styles' => is_array($data['styles'] ?? null) ? $data['styles'] : [],
         ]);
     }
 }

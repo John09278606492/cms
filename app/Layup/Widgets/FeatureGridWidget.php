@@ -103,6 +103,7 @@ class FeatureGridWidget extends BaseWidget
             'heading' => $data['heading'] ?? null,
             'intro' => $data['intro'] ?? null,
             'items' => $data['items'] ?? $data['features'] ?? [],
+            'styles' => is_array($data['styles'] ?? null) ? $data['styles'] : [],
         ]);
     }
 }

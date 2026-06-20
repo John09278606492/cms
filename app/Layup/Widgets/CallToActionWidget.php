@@ -97,6 +97,7 @@ class CallToActionWidget extends BaseWidget
             'eyebrow' => $data['eyebrow'] ?? null,
             'heading' => $data['heading'] ?? $data['title'] ?? null,
             'theme' => $data['theme'] ?? 'amber',
+            'styles' => is_array($data['styles'] ?? null) ? $data['styles'] : [],
         ]);
     }
 }

@@ -4,10 +4,15 @@
         'wide' => 'max-w-5xl',
         default => 'max-w-3xl',
     };
+    $styles = $styles ?? [];
+    $rootStyle = trim(
+        (filled($styles['paddingY'] ?? null) ? "padding-top: {$styles['paddingY']}px; padding-bottom: {$styles['paddingY']}px;" : '')
+        . (filled($styles['bg'] ?? null) ? "background-color: {$styles['bg']};" : '')
+    );
 @endphp
 
 @if (filled($imageUrl))
-    <figure class="{{ $containerClass }}">
+    <figure class="{{ $containerClass }}" style="{{ $rootStyle }}" data-lyp-root>
         <div class="overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm">
             <img src="{{ $imageUrl }}" alt="{{ $alt ?: '' }}" class="h-auto w-full object-cover">
         </div>

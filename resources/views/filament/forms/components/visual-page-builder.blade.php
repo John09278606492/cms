@@ -54,6 +54,8 @@
             .lyp-sp-seg button + button { border-left: 1px solid rgba(128,128,128,0.25); }
             .lyp-sp-seg button.active { background: #f59e0b; color: #1c1917; font-weight: 600; opacity: 1; }
             .lyp-sp-hint { font-size: 12px; opacity: 0.65; line-height: 1.5; }
+            .lyp-sp-color { flex: 1; height: 30px; padding: 0; border: 1px solid rgba(128,128,128,0.3); border-radius: 6px; background: transparent; cursor: pointer; }
+            .lyp-sp-clear { width: 26px; flex: 0 0 26px; border: 1px solid rgba(128,128,128,0.3); border-radius: 6px; background: transparent; cursor: pointer; opacity: 0.7; font-size: 14px; line-height: 1; }
             .lyp-widget--selected { outline: 2px solid #f59e0b; outline-offset: 2px; border-radius: 6px; }
         </style>
 
@@ -391,33 +393,49 @@
                     Edit content &amp; links…
                 </button>
 
+                <template x-if="selected && hasHeading(selected.type)">
+                    <div class="lyp-sp-group">
+                        <p class="lyp-sp-label">Typography</p>
+                        <div class="lyp-sp-row">
+                            <span class="lyp-sp-cap">Heading size</span>
+                            <input type="range" min="16" max="80" step="1" :value="styleValue('headingSize', 36)" @input="setStyle('headingSize', $event.target.value)" @change="persistSelected()">
+                            <span class="lyp-sp-val" x-text="styleValue('headingSize', 36) + 'px'"></span>
+                        </div>
+                        <div class="lyp-sp-row">
+                            <span class="lyp-sp-cap">Heading color</span>
+                            <input type="color" :value="styleValue('headingColor', '#1c1917')" @input="setStyle('headingColor', $event.target.value)" @change="persistSelected()" class="lyp-sp-color">
+                            <button type="button" class="lyp-sp-clear" @click="setStyle('headingColor', ''); persistSelected()" title="Reset">&times;</button>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="lyp-sp-group">
+                    <p class="lyp-sp-label">Background</p>
+                    <div class="lyp-sp-row">
+                        <span class="lyp-sp-cap">Color</span>
+                        <input type="color" :value="styleValue('bg', '#ffffff')" @input="setStyle('bg', $event.target.value)" @change="persistSelected()" class="lyp-sp-color">
+                        <button type="button" class="lyp-sp-clear" @click="setStyle('bg', ''); persistSelected()" title="Reset">&times;</button>
+                    </div>
+                </div>
+
+                <div class="lyp-sp-group">
+                    <p class="lyp-sp-label">Spacing</p>
+                    <div class="lyp-sp-row">
+                        <span class="lyp-sp-cap">Padding</span>
+                        <input type="range" min="0" max="96" step="2" :value="styleValue('paddingY', 40)" @input="setStyle('paddingY', $event.target.value)" @change="persistSelected()">
+                        <span class="lyp-sp-val" x-text="styleValue('paddingY', 40) + 'px'"></span>
+                    </div>
+                </div>
+
                 <template x-if="selected && selected.type === 'hero'">
                     <div>
                         <div class="lyp-sp-group">
-                            <p class="lyp-sp-label">Typography</p>
-                            <div class="lyp-sp-row">
-                                <span class="lyp-sp-cap">Heading size</span>
-                                <input type="range" min="20" max="80" step="1" :value="styleValue('headingSize', 48)" @input="setStyle('headingSize', $event.target.value)" @change="persistSelected()">
-                                <span class="lyp-sp-val" x-text="styleValue('headingSize', 48) + 'px'"></span>
-                            </div>
-                            <div class="lyp-sp-row">
-                                <span class="lyp-sp-cap">Align</span>
-                                <div class="lyp-sp-seg">
-                                    <button type="button" :class="{ 'active': alignValue() === 'start' }" @click="setAlignment('start')">Left</button>
-                                    <button type="button" :class="{ 'active': alignValue() === 'center' }" @click="setAlignment('center')">Center</button>
-                                </div>
+                            <p class="lyp-sp-label">Alignment</p>
+                            <div class="lyp-sp-seg lyp-sp-seg--full">
+                                <button type="button" :class="{ 'active': alignValue() === 'start' }" @click="setAlignment('start')">Left</button>
+                                <button type="button" :class="{ 'active': alignValue() === 'center' }" @click="setAlignment('center')">Center</button>
                             </div>
                         </div>
-
-                        <div class="lyp-sp-group">
-                            <p class="lyp-sp-label">Spacing</p>
-                            <div class="lyp-sp-row">
-                                <span class="lyp-sp-cap">Padding</span>
-                                <input type="range" min="0" max="96" step="2" :value="styleValue('paddingY', 48)" @input="setStyle('paddingY', $event.target.value)" @change="persistSelected()">
-                                <span class="lyp-sp-val" x-text="styleValue('paddingY', 48) + 'px'"></span>
-                            </div>
-                        </div>
-
                         <div class="lyp-sp-group">
                             <p class="lyp-sp-label">Width</p>
                             <div class="lyp-sp-seg lyp-sp-seg--full">
@@ -427,10 +445,6 @@
                             </div>
                         </div>
                     </div>
-                </template>
-
-                <template x-if="selected && selected.type !== 'hero'">
-                    <p class="lyp-sp-hint">Design controls for this block are coming soon. Use “Edit content” above for now.</p>
                 </template>
             </div>
         </aside>
@@ -1338,6 +1352,10 @@
                 return (w && w.data && w.data.alignment) ? w.data.alignment : 'start';
             },
 
+            hasHeading(type) {
+                return ['hero', 'feature-grid', 'rich-text', 'call-to-action'].includes(type);
+            },
+
             setStyle(field, value) {
                 const w = this.getSelectedWidget();
                 if (!w) return;
@@ -1345,7 +1363,7 @@
                 w.data.styles = w.data.styles || {};
                 const numeric = (field === 'headingSize' || field === 'paddingY');
                 w.data.styles[field] = numeric ? parseInt(value, 10) : value;
-                this.applyHeroStyles();
+                this.applyStyles();
             },
 
             setAlignment(value) {
@@ -1353,32 +1371,41 @@
                 if (!w) return;
                 w.data = w.data || {};
                 w.data.alignment = value;
-                this.applyHeroStyles();
+                this.applyStyles();
                 this.persistSelected();
             },
 
-            applyHeroStyles() {
+            applyStyles() {
                 const root = this.getSelectedPreviewEl();
                 const w = this.getSelectedWidget();
                 if (!root || !w) return;
                 const s = (w.data && w.data.styles) || {};
-                const heading = root.querySelector('[data-layup-edit="heading"]');
-                if (heading) heading.style.fontSize = s.headingSize ? s.headingSize + 'px' : '';
-                const section = root.querySelector('[data-hero-root]');
+
+                const section = root.querySelector('[data-lyp-root]') || root.firstElementChild;
                 if (section) {
                     const p = (s.paddingY !== undefined && s.paddingY !== null && s.paddingY !== '') ? s.paddingY + 'px' : '';
                     section.style.paddingTop = p;
                     section.style.paddingBottom = p;
+                    section.style.backgroundColor = s.bg || '';
                 }
-                const inner = root.querySelector('[data-hero-width]');
-                if (inner) {
-                    inner.classList.remove('max-w-3xl', 'max-w-5xl', 'max-w-none');
-                    inner.classList.add(s.width === 'wide' ? 'max-w-5xl' : (s.width === 'full' ? 'max-w-none' : 'max-w-3xl'));
-                    const center = (w.data.alignment === 'center');
-                    inner.classList.toggle('items-center', center);
-                    inner.classList.toggle('text-center', center);
-                    inner.classList.toggle('items-start', !center);
-                    inner.classList.toggle('text-left', !center);
+
+                const heading = root.querySelector('[data-layup-edit="heading"]');
+                if (heading) {
+                    heading.style.fontSize = s.headingSize ? s.headingSize + 'px' : '';
+                    heading.style.color = s.headingColor || '';
+                }
+
+                if (w.type === 'hero') {
+                    const inner = root.querySelector('[data-hero-width]');
+                    if (inner) {
+                        inner.classList.remove('max-w-3xl', 'max-w-5xl', 'max-w-none');
+                        inner.classList.add(s.width === 'wide' ? 'max-w-5xl' : (s.width === 'full' ? 'max-w-none' : 'max-w-3xl'));
+                        const center = (w.data.alignment === 'center');
+                        inner.classList.toggle('items-center', center);
+                        inner.classList.toggle('text-center', center);
+                        inner.classList.toggle('items-start', !center);
+                        inner.classList.toggle('text-left', !center);
+                    }
                 }
             },
 

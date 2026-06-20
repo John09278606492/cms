@@ -19,13 +19,17 @@
         'full' => 'max-w-none',
         default => 'max-w-3xl',
     };
-    $headingSize = $styles['headingSize'] ?? null;
-    $paddingY = $styles['paddingY'] ?? null;
-    $sectionStyle = filled($paddingY) ? "padding-top: {$paddingY}px; padding-bottom: {$paddingY}px;" : '';
-    $headingStyle = filled($headingSize) ? "font-size: {$headingSize}px; line-height: 1.1;" : '';
+    $rootStyle = trim(
+        (filled($styles['paddingY'] ?? null) ? "padding-top: {$styles['paddingY']}px; padding-bottom: {$styles['paddingY']}px;" : '')
+        . (filled($styles['bg'] ?? null) ? "background-color: {$styles['bg']};" : '')
+    );
+    $headingStyle = trim(
+        (filled($styles['headingSize'] ?? null) ? "font-size: {$styles['headingSize']}px; line-height: 1.15;" : '')
+        . (filled($styles['headingColor'] ?? null) ? "color: {$styles['headingColor']};" : '')
+    );
 @endphp
 
-<section class="rounded-[2rem] border px-8 py-12 shadow-sm {{ $containerClass }}" style="{{ $sectionStyle }}" data-hero-root>
+<section class="rounded-[2rem] border px-8 py-12 shadow-sm {{ $containerClass }}" style="{{ $rootStyle }}" data-lyp-root>
     <div class="flex {{ $widthClass }} flex-col gap-6 {{ $alignmentClass }}" data-hero-width>
         @if (filled($eyebrow))
             <p class="text-xs font-semibold uppercase tracking-[0.35em] {{ $eyebrowClass }}" data-layup-edit="eyebrow">{{ $eyebrow }}</p>

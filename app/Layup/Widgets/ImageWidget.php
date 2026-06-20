@@ -105,6 +105,7 @@ class ImageWidget extends BaseWidget
             'caption' => $data['caption'] ?? null,
             'imageUrl' => static::resolveImageUrl($image),
             'width' => $data['width'] ?? 'content',
+            'styles' => is_array($data['styles'] ?? null) ? $data['styles'] : [],
         ]);
     }
 

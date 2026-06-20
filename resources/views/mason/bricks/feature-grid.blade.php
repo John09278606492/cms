@@ -1,14 +1,23 @@
 @php
     $gridClass = $columns === '2' ? 'md:grid-cols-2' : 'md:grid-cols-2 xl:grid-cols-3';
+    $styles = $styles ?? [];
+    $rootStyle = trim(
+        (filled($styles['paddingY'] ?? null) ? "padding-top: {$styles['paddingY']}px; padding-bottom: {$styles['paddingY']}px;" : '')
+        . (filled($styles['bg'] ?? null) ? "background-color: {$styles['bg']};" : '')
+    );
+    $headingStyle = trim(
+        (filled($styles['headingSize'] ?? null) ? "font-size: {$styles['headingSize']}px; line-height: 1.15;" : '')
+        . (filled($styles['headingColor'] ?? null) ? "color: {$styles['headingColor']};" : '')
+    );
 @endphp
 
-<section class="rounded-[2rem] border border-stone-200 bg-white px-8 py-10 shadow-sm">
+<section class="rounded-[2rem] border border-stone-200 bg-white px-8 py-10 shadow-sm" style="{{ $rootStyle }}" data-lyp-root>
     @if (filled($eyebrow))
         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700" data-layup-edit="eyebrow">{{ $eyebrow }}</p>
     @endif
 
     @if (filled($heading))
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950" data-layup-edit="heading">{{ $heading }}</h2>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight text-stone-950" style="{{ $headingStyle }}" data-layup-edit="heading">{{ $heading }}</h2>
     @endif
 
     @if (filled($intro))
