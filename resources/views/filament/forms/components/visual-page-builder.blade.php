@@ -21,7 +21,7 @@
             class="lyp-wrap"
             :class="{ 'lyp-fullscreen': fullscreen }"
             x-on:content-updated.window="pushHistory(); content = Array.isArray($event.detail) ? $event.detail[0] : $event.detail"
-            @keydown.window="onKeyDown($event); if ($event.key === 'Escape') fullscreen = false"
+            @keydown.window="onKeyDown($event); if ($event.key === 'Escape' && fullscreen) requestExitFullscreen()"
     >
 
 
@@ -98,6 +98,13 @@
             .lyp-fs-btn:hover { background: rgba(128,128,128,0.12); }
             .lyp-fs-save { background: #f59e0b; color: #1c1917; border-color: #f59e0b; }
             .lyp-fs-save:hover { background: #d97706; }
+            .lyp-dirty-dot { display: inline-flex; align-items: center; font-size: 11px; font-weight: 500; color: #d97706; margin-right: 4px; }
+            .lyp-exit-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+            .lyp-exit-modal { background: var(--gray-50, #fff); color: inherit; border-radius: 12px; padding: 20px; max-width: 420px; width: calc(100% - 2rem); border: 1px solid rgba(128,128,128,0.25); }
+            .dark .lyp-exit-modal { background: #1c1917; }
+            .lyp-exit-title { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+            .lyp-exit-text { font-size: 13px; opacity: 0.75; margin: 0 0 16px; line-height: 1.5; }
+            .lyp-exit-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
             .lyp-wrap.lyp-fullscreen { position: fixed; inset: 0; z-index: 50; background: #f5f5f4; overflow: auto; min-height: 100vh; padding: 0; }
             .dark .lyp-wrap.lyp-fullscreen { background: #0c0a09; }
             .lyp-wrap.lyp-fullscreen .lyp-toolbar { position: sticky; top: 0; z-index: 20; background: var(--gray-50, #fafaf9); }
@@ -141,17 +148,35 @@
                     </button>
                 </div>
 
+                {{-- Unsaved-changes indicator --}}
+                <span x-show="dirty" class="lyp-dirty-dot" title="You have unsaved changes">● Unsaved</span>
+
                 {{-- Save (available inside full screen, where the form's button is covered) --}}
-                <button type="button" x-show="fullscreen" @click="$wire.save()" class="lyp-fs-btn lyp-fs-save">Save changes</button>
+                <button type="button" x-show="fullscreen" @click="saveChanges()" class="lyp-fs-btn lyp-fs-save">Save changes</button>
 
                 {{-- Full screen editor toggle --}}
-                <button type="button" @click="fullscreen = !fullscreen" class="lyp-fs-btn" :title="fullscreen ? 'Exit full screen (Esc)' : 'Edit full screen'">
+                <button type="button" @click="toggleFullscreen()" class="lyp-fs-btn" :title="fullscreen ? 'Exit full screen (Esc)' : 'Edit full screen'">
                     <svg x-show="!fullscreen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
                     <svg x-show="fullscreen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"/></svg>
                     <span x-text="fullscreen ? 'Exit' : 'Full screen'"></span>
                 </button>
             </div>
         </div>
+
+        {{-- Unsaved-changes exit prompt --}}
+        <template x-if="exitPrompt">
+            <div class="lyp-exit-overlay" @click.self="exitPrompt = false">
+                <div class="lyp-exit-modal">
+                    <p class="lyp-exit-title">Unsaved changes</p>
+                    <p class="lyp-exit-text">You have changes that haven&rsquo;t been saved yet. What would you like to do?</p>
+                    <div class="lyp-exit-actions">
+                        <button type="button" class="lyp-fs-btn" @click="exitPrompt = false">Keep editing</button>
+                        <button type="button" class="lyp-fs-btn" @click="discardAndExit()">Discard &amp; exit</button>
+                        <button type="button" class="lyp-fs-btn lyp-fs-save" @click="saveAndExit()">Save &amp; exit</button>
+                    </div>
+                </div>
+            </div>
+        </template>
 
         {{-- Canvas + docked style panel (M3) --}}
         <div class="lyp-editor-body">
@@ -313,6 +338,18 @@
                                                                         <span class="lyp-widget-type" x-text="getWidgetLabel(widget.type)"></span>
                                                                     </div>
                                                                     <div class="lyp-actions">
+                                                                        <button type="button" @click.stop="moveWidget(row.id, col.id, widget.id, 'up')" class="lyp-action-btn lyp-action-btn--sm" title="Move up">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+                                                                        </button>
+                                                                        <button type="button" @click.stop="moveWidget(row.id, col.id, widget.id, 'down')" class="lyp-action-btn lyp-action-btn--sm" title="Move down">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                                                                        </button>
+                                                                        <button type="button" @click.stop="moveWidget(row.id, col.id, widget.id, 'left')" class="lyp-action-btn lyp-action-btn--sm" title="Move to previous column">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+                                                                        </button>
+                                                                        <button type="button" @click.stop="moveWidget(row.id, col.id, widget.id, 'right')" class="lyp-action-btn lyp-action-btn--sm" title="Move to next column">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                                                                        </button>
                                                                         <button type="button" @click.stop="widgetEdit(row.id, col.id, widget.id)" class="lyp-action-btn lyp-action-btn--sm" title="{{ __('layup::builder.edit') }}">
                                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/></svg>
                                                                         </button>
@@ -528,6 +565,8 @@
             widgetPreviews: config.widgetPreviews || {},
             showRuler: false,
             fullscreen: false,
+            dirty: false,
+            exitPrompt: false,
             saving: false,
 
             // Widget Picker
@@ -745,6 +784,7 @@
             },
 
             pushHistory() {
+                this.dirty = true;
                 const snapshot = JSON.parse(JSON.stringify(this.content));
                 this.history = this.history.slice(0, this.historyIndex + 1);
                 this.history.push(snapshot);
@@ -1463,6 +1503,63 @@
             persistSelected() {
                 this.pushHistory();
                 $wire.set(this.statePath, JSON.parse(JSON.stringify(this.content)), false);
+            },
+
+            // ---- Reliable widget moving (up / down / across columns) ----
+            moveWidget(rowId, colId, widgetId, dir) {
+                const row = (this.content.rows || []).find(r => r.id === rowId);
+                if (!row) return;
+                const colIndex = row.columns.findIndex(c => c.id === colId);
+                if (colIndex === -1) return;
+                const col = row.columns[colIndex];
+                const idx = (col.widgets || []).findIndex(w => w.id === widgetId);
+                if (idx === -1) return;
+
+                if (dir === 'up' && idx > 0) {
+                    this.widgetMoveTo(rowId, colId, widgetId, rowId, colId, idx - 1);
+                } else if (dir === 'down' && idx < col.widgets.length - 1) {
+                    this.widgetMoveTo(rowId, colId, widgetId, rowId, colId, idx + 1);
+                } else if (dir === 'left' && colIndex > 0) {
+                    const target = row.columns[colIndex - 1];
+                    this.widgetMoveTo(rowId, colId, widgetId, rowId, target.id, (target.widgets || []).length);
+                } else if (dir === 'right' && colIndex < row.columns.length - 1) {
+                    const target = row.columns[colIndex + 1];
+                    this.widgetMoveTo(rowId, colId, widgetId, rowId, target.id, (target.widgets || []).length);
+                }
+            },
+
+            // ---- Save / full-screen exit with unsaved-changes guard ----
+            saveChanges() {
+                $wire.save();
+                this.dirty = false;
+            },
+
+            toggleFullscreen() {
+                if (this.fullscreen) {
+                    this.requestExitFullscreen();
+                } else {
+                    this.fullscreen = true;
+                }
+            },
+
+            requestExitFullscreen() {
+                if (this.dirty) {
+                    this.exitPrompt = true;
+                } else {
+                    this.fullscreen = false;
+                }
+            },
+
+            saveAndExit() {
+                $wire.save();
+                this.dirty = false;
+                this.exitPrompt = false;
+                this.fullscreen = false;
+            },
+
+            discardAndExit() {
+                this.exitPrompt = false;
+                window.location.reload();
             },
 
             // Column resizing
