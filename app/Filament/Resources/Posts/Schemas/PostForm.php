@@ -59,6 +59,8 @@ class PostForm
                     ])
                     ->columns(2),
                 Section::make('Publishing')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         Select::make('status')
                             ->options(ContentStatus::options())
@@ -86,6 +88,8 @@ class PostForm
                     ])
                     ->columns(2),
                 Section::make('SEO')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         TextInput::make('meta_title')
                             ->maxLength(255),

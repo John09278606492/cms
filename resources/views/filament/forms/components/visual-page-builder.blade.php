@@ -19,8 +19,9 @@
 
             {{ $getExtraAttributeBag() }}
             class="lyp-wrap"
+            :class="{ 'lyp-fullscreen': fullscreen }"
             x-on:content-updated.window="pushHistory(); content = Array.isArray($event.detail) ? $event.detail[0] : $event.detail"
-            @keydown.window="onKeyDown($event)"
+            @keydown.window="onKeyDown($event); if ($event.key === 'Escape') fullscreen = false"
     >
 
 
@@ -91,6 +92,16 @@
             /* Subtle add-widget / insert affordances */
             .lyp-add-widget { opacity: 0; padding: 0.25rem !important; margin-top: 2px; transition: opacity 0.1s; }
             .lyp-col:hover .lyp-add-widget, .lyp-col:has(.lyp-widgets:empty) .lyp-add-widget { opacity: 0.65; }
+
+            /* Full-screen editor (Elementor-style distraction-free mode) */
+            .lyp-fs-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; font-size: 12px; font-weight: 500; border: 1px solid rgba(128,128,128,0.3); border-radius: 8px; background: transparent; cursor: pointer; }
+            .lyp-fs-btn:hover { background: rgba(128,128,128,0.12); }
+            .lyp-fs-save { background: #f59e0b; color: #1c1917; border-color: #f59e0b; }
+            .lyp-fs-save:hover { background: #d97706; }
+            .lyp-wrap.lyp-fullscreen { position: fixed; inset: 0; z-index: 50; background: #f5f5f4; overflow: auto; min-height: 100vh; padding: 0; }
+            .dark .lyp-wrap.lyp-fullscreen { background: #0c0a09; }
+            .lyp-wrap.lyp-fullscreen .lyp-toolbar { position: sticky; top: 0; z-index: 20; background: var(--gray-50, #fafaf9); }
+            .dark .lyp-wrap.lyp-fullscreen .lyp-toolbar { background: #1c1917; }
         </style>
 
         {{-- Top Bar --}}
@@ -130,9 +141,14 @@
                     </button>
                 </div>
 
-                {{-- Ruler Toggle --}}
-                <button type="button" @click="showRuler = !showRuler" class="lyp-toolbar-icon" :title="showRuler ? '{{ __('layup::builder.hide_ruler') }}' : '{{ __('layup::builder.show_ruler') }}'" :style="showRuler ? 'color: var(--primary-500)' : ''">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"/></svg>
+                {{-- Save (available inside full screen, where the form's button is covered) --}}
+                <button type="button" x-show="fullscreen" @click="$wire.save()" class="lyp-fs-btn lyp-fs-save">Save changes</button>
+
+                {{-- Full screen editor toggle --}}
+                <button type="button" @click="fullscreen = !fullscreen" class="lyp-fs-btn" :title="fullscreen ? 'Exit full screen (Esc)' : 'Edit full screen'">
+                    <svg x-show="!fullscreen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"/></svg>
+                    <svg x-show="fullscreen" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25"/></svg>
+                    <span x-text="fullscreen ? 'Exit' : 'Full screen'"></span>
                 </button>
             </div>
         </div>
@@ -511,6 +527,7 @@
             translations: config.translations,
             widgetPreviews: config.widgetPreviews || {},
             showRuler: false,
+            fullscreen: false,
             saving: false,
 
             // Widget Picker

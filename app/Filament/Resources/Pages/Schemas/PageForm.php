@@ -47,6 +47,8 @@ class PageForm
                     ])
                     ->columns(2),
                 Section::make('Structure')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         Select::make('parent_id')
                             ->relationship('parent', 'title', modifyQueryUsing: function (Builder $query): Builder {
@@ -74,6 +76,8 @@ class PageForm
                     ])
                     ->columns(2),
                 Section::make('Publishing')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         Select::make('status')
                             ->options(ContentStatus::options())
@@ -99,6 +103,8 @@ class PageForm
                     ])
                     ->columns(2),
                 Section::make('SEO')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         TextInput::make('meta_title')
                             ->maxLength(255),
