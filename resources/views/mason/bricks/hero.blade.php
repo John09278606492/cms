@@ -12,16 +12,27 @@
     $primaryButtonClass = $surface === 'contrast'
         ? 'bg-white text-stone-950 hover:bg-stone-100'
         : 'bg-stone-950 text-white hover:bg-stone-800';
+
+    $styles = $styles ?? [];
+    $widthClass = match ($styles['width'] ?? 'content') {
+        'wide' => 'max-w-5xl',
+        'full' => 'max-w-none',
+        default => 'max-w-3xl',
+    };
+    $headingSize = $styles['headingSize'] ?? null;
+    $paddingY = $styles['paddingY'] ?? null;
+    $sectionStyle = filled($paddingY) ? "padding-top: {$paddingY}px; padding-bottom: {$paddingY}px;" : '';
+    $headingStyle = filled($headingSize) ? "font-size: {$headingSize}px; line-height: 1.1;" : '';
 @endphp
 
-<section class="rounded-[2rem] border px-8 py-12 shadow-sm {{ $containerClass }}">
-    <div class="flex max-w-3xl flex-col gap-6 {{ $alignmentClass }}">
+<section class="rounded-[2rem] border px-8 py-12 shadow-sm {{ $containerClass }}" style="{{ $sectionStyle }}" data-hero-root>
+    <div class="flex {{ $widthClass }} flex-col gap-6 {{ $alignmentClass }}" data-hero-width>
         @if (filled($eyebrow))
             <p class="text-xs font-semibold uppercase tracking-[0.35em] {{ $eyebrowClass }}" data-layup-edit="eyebrow">{{ $eyebrow }}</p>
         @endif
 
         @if (filled($heading))
-            <h2 class="text-4xl font-semibold tracking-tight sm:text-5xl {{ $headingClass }}" data-layup-edit="heading">{{ $heading }}</h2>
+            <h2 class="text-4xl font-semibold tracking-tight sm:text-5xl {{ $headingClass }}" style="{{ $headingStyle }}" data-layup-edit="heading">{{ $heading }}</h2>
         @endif
 
         @if (filled($copy))

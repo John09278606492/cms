@@ -123,6 +123,7 @@ class HeroWidget extends BaseWidget
             'secondaryLabel' => $data['secondary_label'] ?? $data['secondary_button_text'] ?? null,
             'secondaryUrl' => $data['secondary_url'] ?? $data['secondary_button_url'] ?? null,
             'surface' => $data['surface'] ?? 'soft',
+            'styles' => is_array($data['styles'] ?? null) ? $data['styles'] : [],
         ]);
     }
 }
