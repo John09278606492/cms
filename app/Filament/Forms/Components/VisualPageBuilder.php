@@ -76,6 +76,24 @@ class VisualPageBuilder extends LayupBuilder
     }
 
     /**
+     * Re-render a single widget's preview HTML on demand (called from the canvas
+     * after a widget's content is edited in the settings modal) and dispatch it
+     * back to the builder. callSchemaComponentMethod doesn't return values to JS,
+     * so the HTML is delivered via an event instead.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function renderWidgetPreview(string $widgetId, string $type, array $data): void
+    {
+        $this->getLivewire()->dispatch(
+            'layup-preview-rendered',
+            widgetId: $widgetId,
+            html: $this->renderWidget($type, is_array($data) ? $data : []),
+            statePath: $this->getStatePath(),
+        );
+    }
+
+    /**
      * Render a single widget to the same HTML the public site would produce.
      */
     protected function renderWidget(string $type, array $data): string

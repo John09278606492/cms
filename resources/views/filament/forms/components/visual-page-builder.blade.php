@@ -658,6 +658,36 @@
 
                 this.setupInlineEditing();
 
+                // After a widget's content is edited in the settings modal, sync the
+                // change into the canvas: update content by id, re-render the widget's
+                // preview, and write through to the saved state. Use a captured
+                // reference (raw listeners don't get Alpine's `this`/`$wire` magic).
+                const self = this;
+                window.addEventListener('layup-widget-updated', (event) => {
+                    if (! event.detail || event.detail.statePath !== self.statePath) return;
+                    const widgetId = event.detail.widgetId;
+                    const data = event.detail.data;
+                    if (! widgetId || ! data) return;
+
+                    let type = null;
+                    (self.content.rows || []).forEach((row) => (row.columns || []).forEach((col) => (col.widgets || []).forEach((w) => {
+                        if (w.id === widgetId) { w.data = data; type = w.type; }
+                    })));
+                    if (! type) return;
+
+                    self.dirty = true;
+                    self.$wire.set(self.statePath, JSON.parse(JSON.stringify(self.content)), false);
+                    // Ask the server to re-render this widget's preview and push the
+                    // HTML back via the layup-preview-rendered event.
+                    self.$wire.callSchemaComponentMethod(self.componentKey, 'renderWidgetPreview', { widgetId, type, data });
+                });
+
+                // Server returns freshly rendered preview HTML for a widget.
+                window.addEventListener('layup-preview-rendered', (event) => {
+                    if (! event.detail || event.detail.statePath !== self.statePath) return;
+                    self.widgetPreviews[event.detail.widgetId] = event.detail.html || '';
+                });
+
                 // Watch for Livewire saves
                 Livewire.hook('request', ({respond}) => {
                     this.saving = true;
