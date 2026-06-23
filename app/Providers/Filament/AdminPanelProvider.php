@@ -173,7 +173,8 @@ class AdminPanelProvider extends PanelProvider
                     ->navigationSort(35)
                     ->shouldRegisterNavigation(fn (): bool => Filament::getTenant() !== null),
                 LayupPageBuilderPlugin::make()
-                    ->withoutConfigWidgets()
+                    // Load the full Layup widget library from config, then register
+                    // our customised widgets last so they override the same types.
                     ->widgets([
                         HeroWidget::class,
                         RichTextWidget::class,
