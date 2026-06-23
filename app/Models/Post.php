@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-use App\Casts\PageBuilderContentCast;
 use App\Enums\ContentStatus;
-use App\Models\Concerns\HasPageBuilderContent;
 use Datlechin\FilamentMenuBuilder\Contracts\MenuPanelable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,7 +20,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Post extends Model implements HasMedia, MenuPanelable
 {
     use HasFactory;
-    use HasPageBuilderContent;
     use InteractsWithMediaFiles;
     use InteractsWithMedia;
     use SoftDeletes;
@@ -48,7 +45,7 @@ class Post extends Model implements HasMedia, MenuPanelable
     protected function casts(): array
     {
         return [
-            'content' => PageBuilderContentCast::class,
+            'content' => 'array',
             'status' => ContentStatus::class,
             'published_at' => 'datetime',
             'is_featured' => 'boolean',

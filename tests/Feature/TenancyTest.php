@@ -89,7 +89,7 @@ class TenancyTest extends TestCase
             ->assertSee('Start with your own pages, posts, menus, and settings instead of placeholder content.');
     }
 
-    public function test_mason_builder_content_renders_on_public_pages(): void
+    public function test_page_builder_blocks_render_on_public_pages(): void
     {
         $site = Site::query()->create([
             'name' => 'Builder Site',
@@ -97,7 +97,7 @@ class TenancyTest extends TestCase
             'is_active' => true,
         ]);
 
-        $homepage = Page::query()->create([
+        Page::query()->create([
             'site_id' => $site->getKey(),
             'title' => 'Builder Home',
             'slug' => 'builder-home',
@@ -105,54 +105,52 @@ class TenancyTest extends TestCase
             'published_at' => now(),
             'is_homepage' => true,
             'show_in_menu' => false,
-            'content' => MasonContent::blocks(
-                MasonContent::hero(
-                    heading: 'Build with blocks',
-                    copy: 'This page now uses Mason bricks.',
-                    eyebrow: 'Builder',
-                    primaryLabel: 'Start here',
-                    primaryUrl: '/start',
-                ),
-            ),
+            'content' => [
+                ['type' => 'hero', 'data' => [
+                    'eyebrow' => 'Builder',
+                    'heading' => 'Build with blocks',
+                    'copy' => 'This page is built with the Filament-native page builder.',
+                    'primary_label' => 'Start here',
+                    'primary_url' => '/start',
+                ]],
+                ['type' => 'paragraph', 'data' => [
+                    'content' => '<p>Body text rendered from a block.</p>',
+                ]],
+            ],
         ]);
 
         $this->get("/sites/{$site->slug}")
             ->assertOk()
             ->assertSee('Build with blocks')
-            ->assertSee('This page now uses Mason bricks.')
-            ->assertSee('Start here');
+            ->assertSee('This page is built with the Filament-native page builder.')
+            ->assertSee('Start here')
+            ->assertSee('Body text rendered from a block.');
     }
 
-    public function test_legacy_html_content_is_rendered_after_builder_upgrade(): void
+    public function test_rich_text_block_renders_its_html(): void
     {
         $site = Site::query()->create([
-            'name' => 'Legacy Site',
-            'slug' => 'legacy-site',
+            'name' => 'Rich Site',
+            'slug' => 'rich-site',
             'is_active' => true,
         ]);
 
-        $homepage = Page::query()->create([
+        Page::query()->create([
             'site_id' => $site->getKey(),
-            'title' => 'Legacy Home',
-            'slug' => 'legacy-home',
+            'title' => 'Rich Home',
+            'slug' => 'rich-home',
             'status' => ContentStatus::Published,
             'published_at' => now(),
             'is_homepage' => true,
             'show_in_menu' => false,
-            'content' => MasonContent::blocks(
-                MasonContent::richText('<p>Original builder content.</p>'),
-            ),
+            'content' => [
+                ['type' => 'paragraph', 'data' => ['content' => '<p>Rendered rich-text content.</p>']],
+            ],
         ]);
-
-        DB::table('pages')
-            ->where('id', $homepage->getKey())
-            ->update([
-                'content' => '<p>Legacy builder-safe content.</p>',
-            ]);
 
         $this->get("/sites/{$site->slug}")
             ->assertOk()
-            ->assertSee('Legacy builder-safe content.');
+            ->assertSee('Rendered rich-text content.');
     }
 
     public function test_layup_image_widget_keeps_media_state_inside_the_builder_payload(): void

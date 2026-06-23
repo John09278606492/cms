@@ -34,9 +34,7 @@
         @endif
 
         @if (filled($post->content))
-            <div class="cms-builder mt-10">
-                {!! $post->renderContent() !!}
-            </div>
+            <x-page-builder :blocks="$post->content" class="mt-10" />
         @endif
     </article>
 @endsection

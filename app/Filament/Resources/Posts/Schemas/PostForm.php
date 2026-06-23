@@ -3,7 +3,8 @@
 namespace App\Filament\Resources\Posts\Schemas;
 
 use App\Enums\ContentStatus;
-use App\Filament\Forms\Components\VisualPageBuilder;
+use App\PageBuilder\PageBuilder;
+use Filament\Forms\Components\Builder as ContentBuilder;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -41,9 +42,14 @@ class PostForm
                         Textarea::make('excerpt')
                             ->rows(4)
                             ->columnSpanFull(),
-                        VisualPageBuilder::make('content')
+                        ContentBuilder::make('content')
                             ->label('Post builder')
-                            ->helperText('Compose the article with rows, columns, and reusable widgets.'),
+                            ->blocks(PageBuilder::blocks())
+                            ->blockPreviews()
+                            ->addActionLabel('Add a block')
+                            ->collapsible()
+                            ->blockNumbers(false)
+                            ->columnSpanFull(),
                         Select::make('categories')
                             ->relationship('categories', 'name')
                             ->multiple()

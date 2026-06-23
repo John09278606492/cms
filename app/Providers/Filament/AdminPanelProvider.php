@@ -8,7 +8,6 @@ use App\Filament\Pages\Tenancy\EditSiteProfile;
 use App\Filament\Pages\Tenancy\RegisterSite;
 use App\Filament\Widgets\CmsForgeAlertWidget;
 use App\Filament\Widgets\SiteStatusAlertWidget;
-use App\Filament\Plugins\LayupPageBuilderPlugin;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
@@ -16,11 +15,6 @@ use App\Filament\Resources\Settings\SettingResource;
 use App\Filament\Resources\Tags\TagResource;
 use App\Filament\Widgets\ContentStatsOverview;
 use App\Filament\Widgets\RecentContent;
-use App\Layup\Widgets\CallToActionWidget;
-use App\Layup\Widgets\FeatureGridWidget;
-use App\Layup\Widgets\HeroWidget;
-use App\Layup\Widgets\ImageWidget;
-use App\Layup\Widgets\RichTextWidget;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Post;
@@ -172,16 +166,6 @@ class AdminPanelProvider extends PanelProvider
                     ->navigationIcon('heroicon-o-photo')
                     ->navigationSort(35)
                     ->shouldRegisterNavigation(fn (): bool => Filament::getTenant() !== null),
-                LayupPageBuilderPlugin::make()
-                    // Load the full Layup widget library from config, then register
-                    // our customised widgets last so they override the same types.
-                    ->widgets([
-                        HeroWidget::class,
-                        RichTextWidget::class,
-                        ImageWidget::class,
-                        FeatureGridWidget::class,
-                        CallToActionWidget::class,
-                    ]),
             ])
             ->authMiddleware([
                 Authenticate::class,

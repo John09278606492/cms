@@ -14,6 +14,7 @@
 @source '../../../../vendor/mradder/filament-logger/resources/views/**/*.blade.php';
 @source '../../../../vendor/crumbls/layup/resources/views/**/*.blade.php';
 @source '../../../../resources/views/mason/**/*.blade.php';
+@source '../../../../resources/views/page-builder/**/*.blade.php';
 @source '../../../../storage/layup-safelist.txt';
 @source '../../../../vendor/slimani/filament-media-manager/resources/**/*';
 

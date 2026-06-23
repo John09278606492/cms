@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-use App\Casts\PageBuilderContentCast;
 use App\Enums\ContentStatus;
-use App\Models\Concerns\HasPageBuilderContent;
 use App\Support\PageNavigationManager;
 use Datlechin\FilamentMenuBuilder\Contracts\MenuPanelable;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,7 +21,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Page extends Model implements HasMedia, MenuPanelable
 {
     use HasFactory;
-    use HasPageBuilderContent;
     use InteractsWithMediaFiles;
     use InteractsWithMedia;
     use SoftDeletes;
@@ -52,7 +49,7 @@ class Page extends Model implements HasMedia, MenuPanelable
     protected function casts(): array
     {
         return [
-            'content' => PageBuilderContentCast::class,
+            'content' => 'array',
             'status' => ContentStatus::class,
             'published_at' => 'datetime',
             'is_homepage' => 'boolean',

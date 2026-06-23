@@ -18,11 +18,9 @@ use Illuminate\Support\Carbon;
 use Spatie\Permission\Models\Role;
 
 /**
- * Builds a complete, creative demo site — "Lumina, Dark-Sky Retreats" — to
- * exercise the CMS end to end: tenant settings, page-builder pages (hero,
- * feature grid, rich text, image, CTA), auto-synced navigation, a footer menu,
- * and a categorised/tagged blog. Idempotent: re-running rebuilds the demo site
- * without touching any other tenant.
+ * Builds a complete demo site — "Lumina, Dark-Sky Retreats" — using the custom
+ * Filament-native page builder (flat block list: [{type, data}, ...]). Idempotent:
+ * re-running rebuilds the demo site without touching any other tenant.
  */
 class ExampleSiteSeeder extends Seeder
 {
@@ -51,8 +49,7 @@ class ExampleSiteSeeder extends Seeder
 
         $this->resetDemoContent($site);
         $this->configureSettings($site);
-
-        $pages = $this->createPages($site, $owner);
+        $this->createPages($site, $owner);
         $this->createBlog($site, $owner);
         $this->createFooterMenu($site);
 
@@ -61,9 +58,7 @@ class ExampleSiteSeeder extends Seeder
 
     private function resetDemoContent(Site $site): void
     {
-        MenuItem::query()
-            ->whereIn('menu_id', $site->menus()->pluck('id'))
-            ->delete();
+        MenuItem::query()->whereIn('menu_id', $site->menus()->pluck('id'))->delete();
         $site->menus()->delete();
         $site->posts()->withTrashed()->forceDelete();
         $site->pages()->withTrashed()->forceDelete();
@@ -93,19 +88,16 @@ class ExampleSiteSeeder extends Seeder
         );
     }
 
-    /**
-     * @return array<string, Page>
-     */
-    private function createPages(Site $site, User $owner): array
+    private function createPages(Site $site, User $owner): void
     {
-        $home = $this->page($site, $owner, [
+        $this->page($site, $owner, [
             'title' => 'Home',
             'slug' => 'home',
             'is_homepage' => true,
             'show_in_menu' => false,
             'excerpt' => 'Trade light pollution for the Milky Way.',
-            'content' => ['rows' => [
-                $this->widgetRow('hero', [
+            'content' => [
+                $this->block('hero', [
                     'eyebrow' => 'Certified Dark-Sky Reserve',
                     'heading' => 'The night sky, the way it was meant to be seen.',
                     'copy' => 'Lumina is a small basecamp at 9,000 feet, far past the last streetlight. Come for the meteor showers, stay for the silence — guided by astronomers who know every constellation by heart.',
@@ -113,10 +105,10 @@ class ExampleSiteSeeder extends Seeder
                     'primary_url' => "/sites/{$site->slug}/pages/experiences",
                     'secondary_label' => 'Read the field notes',
                     'secondary_url' => "/sites/{$site->slug}/blog",
-                    'alignment' => 'center',
                     'surface' => 'contrast',
+                    'align' => 'center',
                 ]),
-                $this->widgetRow('feature-grid', [
+                $this->block('feature_grid', [
                     'eyebrow' => 'What awaits',
                     'heading' => 'Three ways to meet the dark',
                     'intro' => 'Every stay includes a guided sky session, warm gear, and a thermos of something good.',
@@ -127,18 +119,11 @@ class ExampleSiteSeeder extends Seeder
                         ['emoji' => '🌌', 'title' => 'Aurora Voyages', 'description' => 'Winter expeditions chasing the lights to the edge of the reserve.'],
                     ],
                 ]),
-                $this->widgetRow('image', [
-                    'src' => 'https://picsum.photos/seed/lumina-sky/1280/720',
-                    'alt' => 'The Milky Way arcing over a dark mountain ridge',
-                    'caption' => 'A 20-second exposure from Ridgeline Camp — no filter, no city glow.',
-                    'width' => 'wide',
-                ]),
-                $this->widgetRow('rich-text', [
-                    'heading' => 'Why darkness matters',
+                $this->block('paragraph', [
+                    'content' => '<h3>Why darkness matters</h3><p>Two-thirds of people will never see the Milky Way from home. Lumina exists to give it back — a place where your eyes adjust, your phone goes dark, and 2,500 stars come out one by one.</p>',
                     'width' => 'content',
-                    'content' => '<p>Two-thirds of people will never see the Milky Way from home. Lumina exists to give it back — a place where your eyes adjust, your phone goes dark, and 2,500 stars come out one by one.</p><p>We are a Bronze-tier International Dark-Sky community. Every light on the property points down, glows amber, and switches off by 10pm.</p>',
                 ]),
-                $this->widgetRow('call-to-action', [
+                $this->block('call_to_action', [
                     'eyebrow' => 'Limited to 12 guests a night',
                     'heading' => 'Reserve a night under the dark.',
                     'copy' => 'New-moon weekends book out months ahead. Join the waitlist and we will hold your spot for the next clear sky.',
@@ -146,24 +131,24 @@ class ExampleSiteSeeder extends Seeder
                     'button_url' => "/sites/{$site->slug}/pages/visit",
                     'theme' => 'amber',
                 ]),
-            ]],
+            ],
         ]);
 
-        $experiences = $this->page($site, $owner, [
+        $this->page($site, $owner, [
             'title' => 'Experiences',
             'slug' => 'experiences',
             'show_in_menu' => true,
             'sort_order' => 1,
             'excerpt' => 'Guided nights for first-timers and seasoned sky-watchers alike.',
-            'content' => ['rows' => [
-                $this->widgetRow('hero', [
+            'content' => [
+                $this->block('hero', [
                     'eyebrow' => 'Experiences',
                     'heading' => 'Pick your kind of dark.',
                     'copy' => 'From a casual meteor night to a multi-day aurora expedition, every experience is small-group and astronomer-led.',
-                    'alignment' => 'start',
                     'surface' => 'soft',
+                    'align' => 'left',
                 ]),
-                $this->widgetRow('feature-grid', [
+                $this->block('feature_grid', [
                     'heading' => 'The full menu',
                     'columns' => '2',
                     'items' => [
@@ -173,28 +158,28 @@ class ExampleSiteSeeder extends Seeder
                         ['emoji' => '🌅', 'title' => 'Slow Morning · add-on', 'description' => 'Sunrise yoga on the ridge and pour-over coffee before you head home.'],
                     ],
                 ]),
-                $this->widgetRow('call-to-action', [
+                $this->block('call_to_action', [
                     'heading' => 'Not sure which to pick?',
                     'copy' => 'Tell us your dates and we will match you to the clearest skies and the right guide.',
                     'button_label' => 'Ask an astronomer',
                     'button_url' => 'mailto:hello@lumina.test',
                     'theme' => 'stone',
                 ]),
-            ]],
+            ],
         ]);
 
-        $about = $this->page($site, $owner, [
+        $this->page($site, $owner, [
             'title' => 'About',
             'slug' => 'about',
             'show_in_menu' => true,
             'sort_order' => 2,
             'excerpt' => 'A tiny team obsessed with giving the night sky back.',
-            'content' => ['rows' => [
-                $this->widgetRow('rich-text', [
-                    'heading' => 'Our story',
-                    'content' => '<p>Lumina started with a broken-down telescope and a frustration: you had to drive four hours from the city to see anything at all. So we built a place worth driving to.</p><p>Today we are three astronomers, one chef, and a very good dog named Comet.</p>',
+            'content' => [
+                $this->block('paragraph', [
+                    'content' => '<h2>Our story</h2><p>Lumina started with a broken-down telescope and a frustration: you had to drive four hours from the city to see anything at all. So we built a place worth driving to. Today we are three astronomers, one chef, and a very good dog named Comet.</p>',
+                    'width' => 'content',
                 ]),
-                $this->widgetRow('feature-grid', [
+                $this->block('feature_grid', [
                     'eyebrow' => 'What we believe',
                     'heading' => 'Field rules',
                     'columns' => '3',
@@ -204,35 +189,35 @@ class ExampleSiteSeeder extends Seeder
                         ['emoji' => '♻️', 'title' => 'Leave it darker', 'description' => 'We give more to the reserve than we take from it.'],
                     ],
                 ]),
-                $this->widgetRow('call-to-action', [
+                $this->block('call_to_action', [
                     'heading' => 'Come see for yourself.',
                     'copy' => 'Words do not do a dark sky justice. Book a night and let your eyes do the talking.',
                     'button_label' => 'Plan your visit',
                     'button_url' => "/sites/{$site->slug}/pages/visit",
                     'theme' => 'amber',
                 ]),
-            ]],
+            ],
         ]);
 
-        $visit = $this->page($site, $owner, [
+        $this->page($site, $owner, [
             'title' => 'Visit',
             'slug' => 'visit',
             'show_in_menu' => true,
             'sort_order' => 3,
             'excerpt' => 'How to find us, what to pack, and when the skies are best.',
-            'content' => ['rows' => [
-                $this->widgetRow('hero', [
+            'content' => [
+                $this->block('hero', [
                     'eyebrow' => 'Visit',
                     'heading' => 'Getting to the dark.',
                     'copy' => 'Ridgeline Camp sits inside the Cascade Dark-Sky Reserve — about two hours from the nearest airport and a world away from the nearest billboard.',
-                    'alignment' => 'start',
                     'surface' => 'minimal',
+                    'align' => 'left',
                 ]),
-                $this->widgetRow('rich-text', [
-                    'heading' => 'Before you come',
-                    'content' => '<ul><li><strong>Best skies:</strong> new-moon weekends, September through April.</li><li><strong>Pack:</strong> layers, a red flashlight, and your worst sense of bedtime.</li><li><strong>Getting here:</strong> we send a shuttle from the valley trailhead at dusk.</li></ul>',
+                $this->block('paragraph', [
+                    'content' => '<h3>Before you come</h3><ul><li><strong>Best skies:</strong> new-moon weekends, September through April.</li><li><strong>Pack:</strong> layers, a red flashlight, and your worst sense of bedtime.</li><li><strong>Getting here:</strong> we send a shuttle from the valley trailhead at dusk.</li></ul>',
+                    'width' => 'content',
                 ]),
-                $this->widgetRow('call-to-action', [
+                $this->block('call_to_action', [
                     'eyebrow' => 'Questions?',
                     'heading' => 'Reach the basecamp.',
                     'copy' => 'Email hello@lumina.test or call the camp line — a real human answers until midnight.',
@@ -240,10 +225,8 @@ class ExampleSiteSeeder extends Seeder
                     'button_url' => 'mailto:hello@lumina.test',
                     'theme' => 'stone',
                 ]),
-            ]],
+            ],
         ]);
-
-        return compact('home', 'experiences', 'about', 'visit');
     }
 
     private function createBlog(Site $site, User $owner): void
@@ -304,33 +287,20 @@ class ExampleSiteSeeder extends Seeder
                 'status' => ContentStatus::Published,
                 'published_at' => Carbon::now()->subDays($data['days_ago']),
                 'is_featured' => $data['days_ago'] < 5,
-                'content' => ['rows' => [
-                    $this->widgetRow('rich-text', [
-                        'content' => $data['body'],
-                        'width' => 'content',
-                    ]),
-                ]],
+                'content' => [
+                    $this->block('paragraph', ['content' => $data['body'], 'width' => 'content']),
+                ],
             ]);
 
             $post->categories()->attach($data['category']->getKey());
-            $post->tags()->attach(
-                collect($data['tags'])->map(fn (string $slug) => $tags[$slug]->getKey())->all(),
-            );
+            $post->tags()->attach(collect($data['tags'])->map(fn (string $slug) => $tags[$slug]->getKey())->all());
         }
     }
 
     private function createFooterMenu(Site $site): void
     {
-        $footer = Menu::query()->create([
-            'site_id' => $site->getKey(),
-            'name' => 'Footer',
-            'is_visible' => true,
-        ]);
-
-        MenuLocation::query()->firstOrCreate([
-            'menu_id' => $footer->getKey(),
-            'location' => 'footer',
-        ]);
+        $footer = Menu::query()->create(['site_id' => $site->getKey(), 'name' => 'Footer', 'is_visible' => true]);
+        MenuLocation::query()->firstOrCreate(['menu_id' => $footer->getKey(), 'location' => 'footer']);
 
         $links = [
             ['title' => 'Field Notes', 'url' => "/sites/{$site->slug}/blog"],
@@ -366,22 +336,13 @@ class ExampleSiteSeeder extends Seeder
     }
 
     /**
-     * Wrap a single page-builder widget in a full-width row/column.
+     * A single page-builder block in the Filament Builder format.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    private function widgetRow(string $type, array $data): array
+    private function block(string $type, array $data): array
     {
-        return [
-            'columns' => [
-                [
-                    'span' => 12,
-                    'widgets' => [
-                        ['type' => $type, 'data' => $data],
-                    ],
-                ],
-            ],
-        ];
+        return ['type' => $type, 'data' => $data];
     }
 }
