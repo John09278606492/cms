@@ -88,8 +88,15 @@ class VisualPageBuilder extends LayupBuilder
 
         try {
             $widget = new $class($class::prepareForRender($data));
+            $html = trim($widget->render()->render());
 
-            return trim($widget->render()->render());
+            // A freshly added widget often has empty defaults and renders with no
+            // visible content. Returning '' makes the canvas fall back to a labelled
+            // "click to edit" placeholder so the block stays visible and selectable.
+            $hasText = trim(strip_tags($html)) !== '';
+            $hasMedia = (bool) preg_match('/<(img|svg|hr|video|iframe|audio|canvas)\b/i', $html);
+
+            return ($hasText || $hasMedia) ? $html : '';
         } catch (\Throwable $e) {
             report($e);
 

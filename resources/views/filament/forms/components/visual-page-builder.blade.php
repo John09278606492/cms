@@ -69,7 +69,11 @@
             .lyp-columns { gap: 4px !important; }
             .lyp-col { padding: 0 !important; min-height: 2.5rem !important; border-color: transparent !important; background: transparent !important; position: relative; }
             .lyp-widgets { gap: 0 !important; }
-            .lyp-widget { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; position: relative; }
+            .lyp-widget { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; position: relative; min-height: 2.25rem; }
+            .lyp-widget-placeholder { display: flex; align-items: center; gap: 8px; padding: 0.75rem 1rem; min-height: 2.25rem; border: 1px dashed rgba(245,158,11,0.55); border-radius: 6px; cursor: pointer; background: rgba(245,158,11,0.05); }
+            .lyp-widget-placeholder:hover { background: rgba(245,158,11,0.12); }
+            .lyp-ph-name { font-size: 13px; font-weight: 600; opacity: 0.85; }
+            .lyp-ph-hint { font-size: 11px; opacity: 0.55; }
             .lyp-widget:hover { outline: 2px solid rgba(245,158,11,0.45); outline-offset: -2px; }
             .lyp-widget--selected { outline: 2px solid #f59e0b !important; outline-offset: -2px !important; border-radius: 0 !important; }
             .lyp-live-preview { border-radius: 0; }
@@ -365,12 +369,10 @@
                                                                     <div class="lyp-live-preview" x-html="widgetPreviews[widget.id]"></div>
                                                                 </template>
                                                                 <template x-if="!widgetPreviews[widget.id]">
-                                                                    <div
-                                                                            class="lyp-widget-preview"
-                                                                            :class="{ 'lyp-widget-preview--editable': isInlineEditable(widget.type) }"
-                                                                            x-text="getWidgetPreview(widget)"
-                                                                            @dblclick.stop="startInlineEdit(row.id, col.id, widget.id, widget.type, widget.data)"
-                                                                    ></div>
+                                                                    <div class="lyp-widget-placeholder" @click.stop="widgetEdit(row.id, col.id, widget.id)">
+                                                                        <span class="lyp-ph-name" x-text="getWidgetLabel(widget.type)"></span>
+                                                                        <span class="lyp-ph-hint">Click to edit</span>
+                                                                    </div>
                                                                 </template>
                                                             </div>
                                                         </div>
