@@ -31,8 +31,12 @@ class PageBuilder
             self::heading(),
             self::paragraph(),
             self::image(),
+            self::mediaText(),
             self::button(),
             self::featureGrid(),
+            self::stats(),
+            self::accordion(),
+            self::testimonial(),
             self::callToAction(),
             self::gallery(),
             self::video(),
@@ -110,6 +114,76 @@ class PageBuilder
                 TextInput::make('caption')->maxLength(255),
                 Select::make('width')->options(self::widthOptions())->default('content'),
                 Toggle::make('rounded')->default(true),
+            ])
+            ->columns(2);
+    }
+
+    protected static function mediaText(): Block
+    {
+        return Block::make('media_text')
+            ->label('Image + text')
+            ->icon('heroicon-o-view-columns')
+            ->preview('page-builder.blocks.media_text')
+            ->schema([
+                FileUpload::make('image')->image()->disk('public')->directory('page-builder')->imageEditor()->columnSpanFull(),
+                Select::make('image_side')->options(['left' => 'Image left', 'right' => 'Image right'])->default('left'),
+                TextInput::make('heading')->maxLength(160),
+                RichEditor::make('body')->columnSpanFull(),
+                TextInput::make('button_label')->maxLength(40),
+                TextInput::make('button_url')->maxLength(255),
+            ])
+            ->columns(2);
+    }
+
+    protected static function stats(): Block
+    {
+        return Block::make('stats')
+            ->label('Stats')
+            ->icon('heroicon-o-chart-bar')
+            ->preview('page-builder.blocks.stats')
+            ->schema([
+                TextInput::make('heading')->maxLength(160),
+                Select::make('columns')->options(['2' => '2', '3' => '3', '4' => '4'])->default('3'),
+                Repeater::make('items')
+                    ->schema([
+                        TextInput::make('value')->required()->maxLength(20),
+                        TextInput::make('label')->required()->maxLength(60),
+                    ])
+                    ->defaultItems(3)
+                    ->columnSpanFull(),
+            ])
+            ->columns(2);
+    }
+
+    protected static function accordion(): Block
+    {
+        return Block::make('accordion')
+            ->label('Accordion / FAQ')
+            ->icon('heroicon-o-queue-list')
+            ->preview('page-builder.blocks.accordion')
+            ->schema([
+                TextInput::make('heading')->maxLength(160)->columnSpanFull(),
+                Repeater::make('items')
+                    ->schema([
+                        TextInput::make('question')->required()->maxLength(200),
+                        RichEditor::make('answer'),
+                    ])
+                    ->defaultItems(3)
+                    ->columnSpanFull(),
+            ]);
+    }
+
+    protected static function testimonial(): Block
+    {
+        return Block::make('testimonial')
+            ->label('Testimonial')
+            ->icon('heroicon-o-chat-bubble-bottom-center-text')
+            ->preview('page-builder.blocks.testimonial')
+            ->schema([
+                Textarea::make('quote')->required()->rows(3)->columnSpanFull(),
+                TextInput::make('author')->maxLength(80),
+                TextInput::make('role')->maxLength(80),
+                FileUpload::make('avatar')->image()->avatar()->disk('public')->directory('page-builder'),
             ])
             ->columns(2);
     }
