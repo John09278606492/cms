@@ -54,6 +54,10 @@ class PageBuilder
             self::accordion(),
             self::testimonial(),
             self::callToAction(),
+            self::pricingTable(),
+            self::logoCloud(),
+            self::tabs(),
+            self::contactForm(),
             self::gallery(),
             self::video(),
             self::divider(),
@@ -319,6 +323,84 @@ class PageBuilder
                 TextInput::make('button_label')->maxLength(40),
                 TextInput::make('button_url')->maxLength(255),
                 Select::make('theme')->options(['amber' => 'Amber', 'stone' => 'Dark'])->default('amber'),
+            ]));
+    }
+
+    protected static function pricingTable(): Block
+    {
+        return Block::make('pricing_table')
+            ->label('Pricing table')
+            ->icon('heroicon-o-currency-dollar')
+            ->preview('page-builder.blocks.pricing_table')
+            ->columns(2)
+            ->schema(self::withDesign([
+                TextInput::make('eyebrow')->maxLength(80),
+                TextInput::make('heading')->maxLength(160),
+                Textarea::make('intro')->rows(2)->columnSpanFull(),
+                Select::make('columns')->options(['2' => '2 plans', '3' => '3 plans', '4' => '4 plans'])->default('3'),
+                Repeater::make('plans')
+                    ->schema([
+                        TextInput::make('name')->required()->maxLength(60),
+                        TextInput::make('price')->required()->maxLength(20)->helperText('e.g. $29'),
+                        TextInput::make('period')->maxLength(20)->helperText('e.g. /month'),
+                        Textarea::make('description')->rows(2)->columnSpanFull(),
+                        Textarea::make('features')->rows(4)->helperText('One feature per line')->columnSpanFull(),
+                        TextInput::make('button_label')->maxLength(40),
+                        TextInput::make('button_url')->maxLength(255),
+                        Toggle::make('featured')->label('Highlight this plan'),
+                    ])
+                    ->defaultItems(3)
+                    ->columnSpanFull(),
+            ]));
+    }
+
+    protected static function logoCloud(): Block
+    {
+        return Block::make('logo_cloud')
+            ->label('Logo cloud')
+            ->icon('heroicon-o-building-office-2')
+            ->preview('page-builder.blocks.logo_cloud')
+            ->columns(2)
+            ->schema(self::withDesign([
+                TextInput::make('heading')->maxLength(160)->columnSpanFull(),
+                FileUpload::make('logos')->image()->multiple()->reorderable()->disk('public')->directory('page-builder')->columnSpanFull(),
+                Toggle::make('grayscale')->label('Greyscale logos')->default(true),
+            ]));
+    }
+
+    protected static function tabs(): Block
+    {
+        return Block::make('tabs')
+            ->label('Tabs')
+            ->icon('heroicon-o-folder')
+            ->preview('page-builder.blocks.tabs')
+            ->schema(self::withDesign([
+                Repeater::make('items')
+                    ->label('Tabs')
+                    ->schema([
+                        TextInput::make('label')->required()->maxLength(60),
+                        RichEditor::make('content')->columnSpanFull(),
+                    ])
+                    ->defaultItems(2)
+                    ->minItems(1)
+                    ->columnSpanFull(),
+            ]));
+    }
+
+    protected static function contactForm(): Block
+    {
+        return Block::make('contact_form')
+            ->label('Contact form')
+            ->icon('heroicon-o-envelope')
+            ->preview('page-builder.blocks.contact_form')
+            ->columns(2)
+            ->schema(self::withDesign([
+                TextInput::make('heading')->maxLength(160),
+                TextInput::make('button_label')->label('Button label')->maxLength(40)->default('Send message'),
+                Textarea::make('intro')->rows(2)->columnSpanFull(),
+                Toggle::make('show_subject')->label('Include a subject field')->default(true),
+                Textarea::make('success_message')->rows(2)->columnSpanFull()
+                    ->default('Thanks! Your message has been sent.'),
             ]));
     }
 

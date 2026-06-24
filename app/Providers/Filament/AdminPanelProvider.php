@@ -9,6 +9,7 @@ use App\Filament\Pages\Tenancy\RegisterSite;
 use App\Filament\Widgets\CmsForgeAlertWidget;
 use App\Filament\Widgets\SiteStatusAlertWidget;
 use App\Filament\Resources\Categories\CategoryResource;
+use App\Filament\Resources\ContactMessages\ContactMessageResource;
 use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\Settings\SettingResource;
@@ -71,6 +72,7 @@ class AdminPanelProvider extends PanelProvider
                 PageResource::class,
                 CategoryResource::class,
                 TagResource::class,
+                ContactMessageResource::class,
                 SettingResource::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

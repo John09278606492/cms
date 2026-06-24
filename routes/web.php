@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactFormController;
 use App\Models\Setting;
 use App\Models\Site;
 use App\Support\CmsForgeBanner;
@@ -62,6 +63,8 @@ Route::prefix('/sites/{site:slug}')->name('sites.')->group(function (): void {
             'settings' => $settings,
         ]);
     })->name('home');
+
+    Route::post('/contact', [ContactFormController::class, 'store'])->name('contact');
 
     Route::get('/blog', function (Site $site) {
         abort_unless(SiteVisibility::canView($site, auth()->user()), 404, 'This site is not currently active.');

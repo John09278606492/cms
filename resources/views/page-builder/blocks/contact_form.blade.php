@@ -1,0 +1,62 @@
+@php
+    $site = request()->route('site');
+    $action = $site instanceof \App\Models\Site ? route('sites.contact', $site) : null;
+    $showSubject = $show_subject ?? true;
+    $buttonLabel = $button_label ?? 'Send message';
+    $sent = $action && session('contact_form_success');
+@endphp
+<section class="mx-auto max-w-2xl rounded-3xl border border-stone-200 bg-white p-8">
+    @if (! empty($heading))
+        <h2 class="text-2xl font-semibold tracking-tight text-stone-950">{{ $heading }}</h2>
+    @endif
+    @if (! empty($intro))
+        <p class="mt-2 leading-7 text-stone-600">{{ $intro }}</p>
+    @endif
+
+    @if ($sent)
+        <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
+            {{ session('contact_form_success') }}
+        </div>
+    @else
+        @if (isset($errors) && $errors->any())
+            <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+                Please check the form and try again.
+            </div>
+        @endif
+        <form method="POST" action="{{ $action ?? '#' }}" class="mt-6 space-y-4">
+            @csrf
+            {{-- Honeypot: bots fill this, humans never see it. --}}
+            <div class="hidden" aria-hidden="true">
+                <label>Leave this empty <input type="text" name="company" tabindex="-1" autocomplete="off"></label>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-stone-700" for="cf-name">Name</label>
+                    <input id="cf-name" name="name" type="text" required value="{{ old('name') }}"
+                           class="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-stone-900 focus:border-stone-950 focus:ring-stone-950">
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-stone-700" for="cf-email">Email</label>
+                    <input id="cf-email" name="email" type="email" required value="{{ old('email') }}"
+                           class="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-stone-900 focus:border-stone-950 focus:ring-stone-950">
+                </div>
+            </div>
+            @if ($showSubject)
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-stone-700" for="cf-subject">Subject</label>
+                    <input id="cf-subject" name="subject" type="text" value="{{ old('subject') }}"
+                           class="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-stone-900 focus:border-stone-950 focus:ring-stone-950">
+                </div>
+            @endif
+            <div>
+                <label class="mb-1 block text-sm font-medium text-stone-700" for="cf-message">Message</label>
+                <textarea id="cf-message" name="message" rows="5" required
+                          class="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-stone-900 focus:border-stone-950 focus:ring-stone-950">{{ old('message') }}</textarea>
+            </div>
+            <button type="submit" @if (! $action) disabled @endif
+                    class="inline-flex items-center justify-center rounded-full bg-stone-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-50">
+                {{ $buttonLabel }}
+            </button>
+        </form>
+    @endif
+</section>
