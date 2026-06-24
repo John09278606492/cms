@@ -14,6 +14,7 @@ use App\Filament\Resources\Pages\PageResource;
 use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\Settings\SettingResource;
 use App\Filament\Resources\Tags\TagResource;
+use App\Filament\Resources\Templates\TemplateResource;
 use App\Filament\Widgets\ContentStatsOverview;
 use App\Filament\Widgets\RecentContent;
 use App\Models\Menu;
@@ -72,6 +73,7 @@ class AdminPanelProvider extends PanelProvider
                 PageResource::class,
                 CategoryResource::class,
                 TagResource::class,
+                TemplateResource::class,
                 ContactMessageResource::class,
                 SettingResource::class,
             ])

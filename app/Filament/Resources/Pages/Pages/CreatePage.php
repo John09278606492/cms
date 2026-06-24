@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Pages\Pages;
 
 use App\Enums\ContentStatus;
+use App\Filament\Resources\Pages\Concerns\InteractsWithPageTemplates;
 use App\Filament\Resources\Pages\PageResource;
 use App\Models\Page as PageModel;
 use App\Support\PageNavigationManager;
@@ -10,7 +11,14 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreatePage extends CreateRecord
 {
+    use InteractsWithPageTemplates;
+
     protected static string $resource = PageResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return $this->templateActions();
+    }
 
     /**
      * @param  array<string, mixed>  $data

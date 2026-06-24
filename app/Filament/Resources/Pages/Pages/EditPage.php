@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Pages\Pages;
 
 use App\Enums\ContentStatus;
+use App\Filament\Resources\Pages\Concerns\InteractsWithPageTemplates;
 use App\Filament\Resources\Pages\PageResource;
 use App\Models\Page as PageModel;
 use App\Support\PageNavigationManager;
@@ -14,6 +15,8 @@ use Filament\Resources\Pages\EditRecord;
 
 class EditPage extends EditRecord
 {
+    use InteractsWithPageTemplates;
+
     protected static string $resource = PageResource::class;
 
     /**
@@ -55,6 +58,7 @@ class EditPage extends EditRecord
                 ->icon('heroicon-o-eye')
                 ->url(fn (): string => $this->getRecord()->previewUrl(), shouldOpenInNewTab: true)
                 ->visible(fn (): bool => ! $this->getRecord()->trashed()),
+            ...$this->templateActions(),
             DeleteAction::make(),
             RestoreAction::make(),
             ForceDeleteAction::make(),
