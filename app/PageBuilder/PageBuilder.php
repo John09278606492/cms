@@ -2,6 +2,7 @@
 
 namespace App\PageBuilder;
 
+use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
@@ -28,6 +29,20 @@ class PageBuilder
     public static function blocks(): array
     {
         return [
+            ...self::contentBlocks(),
+            self::columns(),
+        ];
+    }
+
+    /**
+     * Blocks that can live inside a column. Excludes the Columns block itself to
+     * avoid infinite nesting.
+     *
+     * @return array<int, Block>
+     */
+    protected static function contentBlocks(): array
+    {
+        return [
             self::hero(),
             self::heading(),
             self::paragraph(),
@@ -44,6 +59,32 @@ class PageBuilder
             self::divider(),
             self::spacer(),
         ];
+    }
+
+    protected static function columns(): Block
+    {
+        return Block::make('columns')
+            ->label('Columns')
+            ->icon('heroicon-o-view-columns')
+            ->preview('page-builder.blocks.columns')
+            ->schema(self::withDesign([
+                Select::make('gap')->options(['sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large'])->default('md'),
+                Repeater::make('columns')
+                    ->label('Columns')
+                    ->schema([
+                        Builder::make('blocks')
+                            ->label('Column content')
+                            ->blocks(self::contentBlocks())
+                            ->blockPreviews()
+                            ->addActionLabel('Add a block')
+                            ->columnSpanFull(),
+                    ])
+                    ->minItems(1)
+                    ->maxItems(4)
+                    ->defaultItems(2)
+                    ->grid(2)
+                    ->columnSpanFull(),
+            ]));
     }
 
     protected static function alignOptions(): array
