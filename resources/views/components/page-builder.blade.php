@@ -1,4 +1,4 @@
-@props(['blocks' => []])
+@props(['blocks' => [], 'page' => null])
 @php
     $blocks = is_array($blocks) ? $blocks : [];
 @endphp
@@ -36,11 +36,11 @@
             @if ($hasDesign)
                 <div class="{{ $padClass }} {{ $alignClass }} {{ ! empty($bg) ? 'rounded-2xl px-6' : '' }}" @if (! empty($bg)) style="background-color: {{ $bg }};" @endif>
                     <div class="{{ $widthClass }}">
-                        @include('page-builder.blocks.' . $type, $data)
+                        @include('page-builder.blocks.' . $type, $data + ['__page' => $page])
                     </div>
                 </div>
             @else
-                @include('page-builder.blocks.' . $type, $data)
+                @include('page-builder.blocks.' . $type, $data + ['__page' => $page])
             @endif
         @endif
     @endforeach

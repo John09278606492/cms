@@ -2,8 +2,21 @@
     $site = request()->route('site');
     $action = $site instanceof \App\Models\Site ? route('sites.contact', $site) : null;
     $showSubject = $show_subject ?? true;
+    $showPhone = $show_phone ?? false;
     $buttonLabel = $button_label ?? 'Send message';
     $sent = $action && session('contact_form_success');
+    $page = ($__page ?? null);
+
+    // Delivery settings travel in an encrypted, tamper-proof field so the
+    // recipient address is never exposed in the page source and visitors can
+    // never redirect submissions to an arbitrary inbox.
+    $config = encrypt([
+        'to' => $to_email ?? null,
+        'send' => $send_email ?? true,
+        'redirect' => $redirect_url ?? null,
+        'success' => $success_message ?? null,
+        'page_id' => $page instanceof \App\Models\Page ? $page->getKey() : null,
+    ]);
 @endphp
 <section class="mx-auto max-w-2xl rounded-3xl border border-stone-200 bg-white p-8">
     @if (! empty($heading))
@@ -25,6 +38,7 @@
         @endif
         <form method="POST" action="{{ $action ?? '#' }}" class="mt-6 space-y-4">
             @csrf
+            <input type="hidden" name="config" value="{{ $config }}">
             {{-- Honeypot: bots fill this, humans never see it. --}}
             <div class="hidden" aria-hidden="true">
                 <label>Leave this empty <input type="text" name="company" tabindex="-1" autocomplete="off"></label>
@@ -41,6 +55,13 @@
                            class="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-stone-900 focus:border-stone-950 focus:ring-stone-950">
                 </div>
             </div>
+            @if ($showPhone)
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-stone-700" for="cf-phone">Phone</label>
+                    <input id="cf-phone" name="phone" type="tel" value="{{ old('phone') }}"
+                           class="w-full rounded-xl border border-stone-300 px-4 py-2.5 text-stone-900 focus:border-stone-950 focus:ring-stone-950">
+                </div>
+            @endif
             @if ($showSubject)
                 <div>
                     <label class="mb-1 block text-sm font-medium text-stone-700" for="cf-subject">Subject</label>

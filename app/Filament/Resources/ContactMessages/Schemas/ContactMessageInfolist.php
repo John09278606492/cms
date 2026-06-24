@@ -16,6 +16,7 @@ class ContactMessageInfolist
                 ->schema([
                     TextEntry::make('name'),
                     TextEntry::make('email')->copyable(),
+                    TextEntry::make('phone')->placeholder('—')->copyable(),
                     TextEntry::make('subject')->placeholder('—'),
                     TextEntry::make('created_at')->label('Received')->dateTime(),
                     TextEntry::make('message')

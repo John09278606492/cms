@@ -15,6 +15,7 @@ class ContactMessage extends Model
         'page_id',
         'name',
         'email',
+        'phone',
         'subject',
         'message',
         'read_at',

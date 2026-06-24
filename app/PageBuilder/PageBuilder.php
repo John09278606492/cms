@@ -399,8 +399,30 @@ class PageBuilder
                 TextInput::make('button_label')->label('Button label')->maxLength(40)->default('Send message'),
                 Textarea::make('intro')->rows(2)->columnSpanFull(),
                 Toggle::make('show_subject')->label('Include a subject field')->default(true),
+                Toggle::make('show_phone')->label('Include a phone field')->default(false),
                 Textarea::make('success_message')->rows(2)->columnSpanFull()
                     ->default('Thanks! Your message has been sent.'),
+                Section::make('Notifications & delivery')
+                    ->description('Submissions are always saved under "Form submissions". Optionally email them too.')
+                    ->icon('heroicon-o-envelope')
+                    ->collapsed()
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('send_email')
+                            ->label('Email me new submissions')
+                            ->default(true)
+                            ->columnSpanFull(),
+                        TextInput::make('to_email')
+                            ->label('Send notifications to')
+                            ->helperText('Comma-separate several addresses. Leave blank to use your site email.')
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+                        TextInput::make('redirect_url')
+                            ->label('Redirect after submit (optional)')
+                            ->helperText('Send visitors to this URL instead of showing the success message.')
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+                    ]),
             ]));
     }
 

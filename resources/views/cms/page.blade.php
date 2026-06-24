@@ -18,7 +18,7 @@
         @endif
 
         @if (filled($page->content))
-            <x-page-builder :blocks="$page->content" class="mt-10" />
+            <x-page-builder :blocks="$page->content" :page="$page" class="mt-10" />
         @endif
     </article>
 @endsection

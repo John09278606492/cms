@@ -3,15 +3,36 @@
 namespace Tests\Feature;
 
 use App\Enums\ContentStatus;
+use App\Mail\ContactSubmissionMail;
 use App\Models\ContactMessage;
 use App\Models\Page;
+use App\Models\Setting;
 use App\Models\Site;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ContactFormTest extends TestCase
 {
     use RefreshDatabase;
+
+    /**
+     * Build the encrypted delivery-config field exactly as the block partial
+     * does, so submissions in tests carry the same settings as the live form.
+     *
+     * @param  array<string, mixed>  $overrides
+     */
+    protected function encryptedConfig(array $overrides = []): string
+    {
+        return Crypt::encrypt(array_merge([
+            'to' => null,
+            'send' => true,
+            'redirect' => null,
+            'success' => null,
+            'page_id' => null,
+        ], $overrides));
+    }
 
     protected function siteWithContactForm(): Site
     {
@@ -115,5 +136,110 @@ class ContactFormTest extends TestCase
         ])->assertNotFound();
 
         $this->assertSame(0, ContactMessage::query()->count());
+    }
+
+    public function test_a_notification_email_is_sent_to_the_configured_recipient(): void
+    {
+        Mail::fake();
+        $site = $this->siteWithContactForm();
+
+        $this->post(route('sites.contact', $site), [
+            'config' => $this->encryptedConfig(['to' => 'owner@example.com']),
+            'name' => 'Ada Lovelace',
+            'email' => 'ada@example.com',
+            'subject' => 'Hello',
+            'message' => 'I would love to learn more.',
+        ])->assertRedirect();
+
+        Mail::assertSent(ContactSubmissionMail::class, function (ContactSubmissionMail $mail): bool {
+            return $mail->hasTo('owner@example.com')
+                && $mail->message->email === 'ada@example.com';
+        });
+    }
+
+    public function test_notifications_fall_back_to_the_site_email(): void
+    {
+        Mail::fake();
+        $site = $this->siteWithContactForm();
+
+        Setting::query()->updateOrCreate(
+            ['site_id' => $site->getKey()],
+            ['site_email' => 'hello@site.test'],
+        );
+
+        $this->post(route('sites.contact', $site), [
+            'config' => $this->encryptedConfig(),
+            'name' => 'Ada',
+            'email' => 'ada@example.com',
+            'message' => 'Hello',
+        ])->assertRedirect();
+
+        Mail::assertSent(ContactSubmissionMail::class, fn (ContactSubmissionMail $mail): bool => $mail->hasTo('hello@site.test'));
+    }
+
+    public function test_no_email_is_sent_when_notifications_are_disabled(): void
+    {
+        Mail::fake();
+        $site = $this->siteWithContactForm();
+
+        $this->post(route('sites.contact', $site), [
+            'config' => $this->encryptedConfig(['send' => false, 'to' => 'owner@example.com']),
+            'name' => 'Ada',
+            'email' => 'ada@example.com',
+            'message' => 'Hello',
+        ])->assertRedirect();
+
+        Mail::assertNothingSent();
+        $this->assertSame(1, ContactMessage::query()->count());
+    }
+
+    public function test_a_phone_number_is_stored_when_provided(): void
+    {
+        Mail::fake();
+        $site = $this->siteWithContactForm();
+
+        $this->post(route('sites.contact', $site), [
+            'config' => $this->encryptedConfig(),
+            'name' => 'Ada',
+            'email' => 'ada@example.com',
+            'phone' => '+1 555 0100',
+            'message' => 'Call me',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('contact_messages', [
+            'email' => 'ada@example.com',
+            'phone' => '+1 555 0100',
+        ]);
+    }
+
+    public function test_visitors_are_redirected_to_a_configured_url(): void
+    {
+        Mail::fake();
+        $site = $this->siteWithContactForm();
+
+        $this->post(route('sites.contact', $site), [
+            'config' => $this->encryptedConfig(['redirect' => 'https://example.com/thank-you']),
+            'name' => 'Ada',
+            'email' => 'ada@example.com',
+            'message' => 'Hello',
+        ])->assertRedirect('https://example.com/thank-you');
+    }
+
+    public function test_a_tampered_config_cannot_redirect_submissions(): void
+    {
+        Mail::fake();
+        $site = $this->siteWithContactForm();
+
+        // A hand-crafted (unencrypted) config is ignored, so an attacker cannot
+        // inject their own recipient or redirect.
+        $this->post(route('sites.contact', $site), [
+            'config' => json_encode(['to' => 'attacker@evil.test', 'send' => true]),
+            'name' => 'Ada',
+            'email' => 'ada@example.com',
+            'message' => 'Hello',
+        ])->assertRedirect();
+
+        Mail::assertNothingSent();
+        $this->assertSame(1, ContactMessage::query()->count());
     }
 }

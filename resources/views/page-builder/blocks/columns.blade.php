@@ -18,7 +18,7 @@
     <div class="grid {{ $gridCols }} {{ $gapClass }}">
         @foreach ($cols as $col)
             <div>
-                <x-page-builder :blocks="$col['blocks'] ?? []" class="!gap-6" />
+                <x-page-builder :blocks="$col['blocks'] ?? []" :page="$__page ?? null" class="!gap-6" />
             </div>
         @endforeach
     </div>
