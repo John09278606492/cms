@@ -132,7 +132,6 @@
         </div>
     </footer>
 
-    @layupScripts
 @stack('scripts')
 </body>
 </html>

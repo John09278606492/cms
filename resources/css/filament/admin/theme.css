@@ -1,5 +1,4 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
-@import '../../../../vendor/crumbls/layup/resources/css/layup.css';
 @import '../../../../vendor/slimani/filament-media-manager/resources/css/media-manager.css';
 
 @source '../../../../app/Filament/**/*';
@@ -12,10 +11,7 @@
 @source '../../../../vendor/datlechin/filament-menu-builder/resources/views/**/*.blade.php';
 @source '../../../../vendor/jeffgreco13/filament-breezy/resources/views/**/*.blade.php';
 @source '../../../../vendor/mradder/filament-logger/resources/views/**/*.blade.php';
-@source '../../../../vendor/crumbls/layup/resources/views/**/*.blade.php';
-@source '../../../../resources/views/mason/**/*.blade.php';
 @source '../../../../resources/views/page-builder/**/*.blade.php';
-@source '../../../../storage/layup-safelist.txt';
 @source '../../../../vendor/slimani/filament-media-manager/resources/**/*';
 
 @layer components {

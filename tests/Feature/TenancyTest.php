@@ -13,17 +13,14 @@ use App\Filament\Widgets\CmsForgeAlertWidget;
 use App\Filament\Widgets\ContentStatsOverview;
 use App\Filament\Widgets\RecentContent;
 use App\Filament\Widgets\SiteStatusAlertWidget;
-use App\Layup\Widgets\ImageWidget;
 use App\Policies\SitePolicy;
 use App\Models\Menu;
 use App\Models\Page;
 use App\Models\Post;
 use App\Models\Site;
 use App\Support\CmsForgeBanner;
-use App\Support\PageBuilderContent;
 use App\Support\SiteStatusBanner;
 use App\Models\User;
-use App\Support\MasonContent;
 use App\Providers\Filament\AdminPanelProvider;
 use Datlechin\FilamentMenuBuilder\Models\MenuItem;
 use Datlechin\FilamentMenuBuilder\Models\MenuLocation;
@@ -38,9 +35,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use ReflectionMethod;
-use ReflectionProperty;
 use Tests\TestCase;
-use Slimani\MediaManager\Form\MediaPicker;
 
 class TenancyTest extends TestCase
 {
@@ -151,59 +146,6 @@ class TenancyTest extends TestCase
         $this->get("/sites/{$site->slug}")
             ->assertOk()
             ->assertSee('Rendered rich-text content.');
-    }
-
-    public function test_layup_image_widget_keeps_media_state_inside_the_builder_payload(): void
-    {
-        $imagePicker = collect(ImageWidget::getFormSchema())
-            ->first(fn ($component): bool => $component instanceof MediaPicker);
-
-        $this->assertInstanceOf(MediaPicker::class, $imagePicker);
-        $this->assertSame('src', $imagePicker->getName());
-
-        $defaults = ImageWidget::getDefaultData();
-        $this->assertArrayHasKey('src', $defaults);
-        $this->assertArrayHasKey('image', $defaults);
-
-        $reflection = new ReflectionProperty($imagePicker, 'saveRelationshipsUsing');
-        $reflection->setAccessible(true);
-
-        $this->assertNull($reflection->getValue($imagePicker));
-    }
-
-    public function test_layup_image_payloads_are_normalized_with_a_src_alias_for_preview(): void
-    {
-        $normalized = PageBuilderContent::normalize([
-            'rows' => [
-                [
-                    'id' => 'row_1',
-                    'settings' => [],
-                    'columns' => [
-                        [
-                            'id' => 'col_1',
-                            'span' => 12,
-                            'settings' => [],
-                            'widgets' => [
-                                [
-                                    'id' => 'widget_1',
-                                    'type' => 'image',
-                                    'data' => [
-                                        'image' => 12,
-                                        'alt' => 'Hero image',
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-
-        $data = $normalized['rows'][0]['columns'][0]['widgets'][0]['data'];
-
-        $this->assertSame(12, $data['src']);
-        $this->assertSame(12, $data['image']);
-        $this->assertSame('Hero image', $data['alt']);
     }
 
     public function test_public_tenant_sites_hide_platform_controls_from_guests(): void
