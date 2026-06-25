@@ -31,6 +31,28 @@ class Setting extends Model implements HasMedia
         'meta_description',
         'posts_per_page',
         'social_links',
+        'brand_primary',
+        'brand_accent',
+        'heading_font',
+        'body_font',
+    ];
+
+    /**
+     * Curated Google Fonts owners can choose for their theme.
+     *
+     * @var array<string, string> family => CSS weights to load
+     */
+    public const FONTS = [
+        'Inter' => 'wght@400;500;600;700',
+        'Poppins' => 'wght@400;500;600;700',
+        'Montserrat' => 'wght@400;500;600;700',
+        'Roboto' => 'wght@400;500;700',
+        'Work Sans' => 'wght@400;500;600;700',
+        'DM Sans' => 'wght@400;500;700',
+        'Source Sans 3' => 'wght@400;600;700',
+        'Lora' => 'wght@400;500;600;700',
+        'Playfair Display' => 'wght@400;500;600;700',
+        'Merriweather' => 'wght@400;700',
     ];
 
     /**
@@ -42,6 +64,34 @@ class Setting extends Model implements HasMedia
             'posts_per_page' => 'integer',
             'social_links' => 'array',
         ];
+    }
+
+    /**
+     * @return array<string, string> family => label, for a Filament Select.
+     */
+    public static function fontOptions(): array
+    {
+        return array_combine(array_keys(self::FONTS), array_keys(self::FONTS));
+    }
+
+    /**
+     * Build the Google Fonts stylesheet URL for the selected theme fonts.
+     */
+    public function googleFontsUrl(): ?string
+    {
+        $families = collect([$this->heading_font, $this->body_font])
+            ->filter(fn ($font): bool => filled($font) && isset(self::FONTS[$font]))
+            ->unique();
+
+        if ($families->isEmpty()) {
+            return null;
+        }
+
+        $params = $families
+            ->map(fn (string $font): string => 'family=' . str_replace(' ', '+', $font) . ':' . self::FONTS[$font])
+            ->implode('&');
+
+        return 'https://fonts.googleapis.com/css2?' . $params . '&display=swap';
     }
 
     public static function current(): self

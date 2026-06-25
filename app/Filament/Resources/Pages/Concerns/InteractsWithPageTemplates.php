@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Pages\Concerns;
 
 use App\Models\Template;
+use App\PageBuilder\StarterTemplates;
 use App\Support\PageTemplates;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -25,9 +26,49 @@ trait InteractsWithPageTemplates
     protected function templateActions(): array
     {
         return [
+            $this->insertStarterAction(),
             $this->saveAsTemplateAction(),
             $this->useTemplateAction(),
         ];
+    }
+
+    protected function insertStarterAction(): Action
+    {
+        return Action::make('insertStarter')
+            ->label('Starter layouts')
+            ->icon('heroicon-o-squares-plus')
+            ->color('gray')
+            ->schema([
+                Select::make('starter')
+                    ->label('Starter layout')
+                    ->options(StarterTemplates::options())
+                    ->required()
+                    ->native(false)
+                    ->helperText('Inserts ready-made blocks you can then edit.'),
+                Toggle::make('replace')
+                    ->label('Replace the current content')
+                    ->helperText('Off: the layout is added below what you already have.')
+                    ->default(false),
+            ])
+            ->action(function (array $data): void {
+                $blocks = StarterTemplates::blocks($data['starter']);
+
+                if ($blocks === []) {
+                    return;
+                }
+
+                $this->data['content'] = PageTemplates::merge(
+                    $this->currentBlocks(),
+                    $blocks,
+                    (bool) ($data['replace'] ?? false),
+                );
+
+                Notification::make()
+                    ->success()
+                    ->title('Starter layout inserted')
+                    ->body('Edit the placeholder content, then save the page.')
+                    ->send();
+            });
     }
 
     protected function currentBlocks(): array

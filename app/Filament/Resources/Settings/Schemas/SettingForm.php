@@ -2,7 +2,10 @@
 
 namespace App\Filament\Resources\Settings\Schemas;
 
+use App\Models\Setting;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
@@ -78,6 +81,26 @@ class SettingForm
                             ->image()
                             ->imageEditor()
                             ->columnSpanFull(),
+                    ])
+                    ->columns(2),
+                Section::make('Brand & theme')
+                    ->description('Applied across every page on this site.')
+                    ->schema([
+                        ColorPicker::make('brand_primary')
+                            ->label('Primary brand colour')
+                            ->helperText('Used for links in your content.'),
+                        ColorPicker::make('brand_accent')
+                            ->label('Accent colour'),
+                        Select::make('heading_font')
+                            ->label('Heading font')
+                            ->options(Setting::fontOptions())
+                            ->searchable()
+                            ->placeholder('Theme default'),
+                        Select::make('body_font')
+                            ->label('Body font')
+                            ->options(Setting::fontOptions())
+                            ->searchable()
+                            ->placeholder('Theme default'),
                     ])
                     ->columns(2),
                 Section::make('Social links')

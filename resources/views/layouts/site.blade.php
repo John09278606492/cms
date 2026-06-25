@@ -52,6 +52,31 @@
         <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @php
+        $themeFontsUrl = $settings->googleFontsUrl();
+        $headingFont = $settings->heading_font;
+        $bodyFont = $settings->body_font;
+        $brandPrimary = $settings->brand_primary;
+        $brandAccent = $settings->brand_accent;
+    @endphp
+    @if ($themeFontsUrl)
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="{{ $themeFontsUrl }}" rel="stylesheet">
+    @endif
+    @if ($headingFont || $bodyFont || $brandPrimary || $brandAccent)
+        <style>
+            :root {
+                @if ($brandPrimary) --brand-primary: {{ $brandPrimary }}; @endif
+                @if ($brandAccent) --brand-accent: {{ $brandAccent }}; @endif
+                @if ($bodyFont) --font-body: '{{ $bodyFont }}', ui-sans-serif, system-ui, sans-serif; @endif
+                @if ($headingFont) --font-heading: '{{ $headingFont }}', ui-sans-serif, system-ui, sans-serif; @endif
+            }
+            @if ($bodyFont) body { font-family: var(--font-body); } @endif
+            @if ($headingFont) h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); } @endif
+            @if ($brandPrimary) main a:not([class*="bg-"]) { color: var(--brand-primary); } @endif
+        </style>
+    @endif
 </head>
 <body class="min-h-screen bg-stone-100 text-stone-900">
     <div class="border-b border-stone-200 bg-white">
