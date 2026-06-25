@@ -54,3 +54,47 @@
 .cms-builder a {
     text-underline-offset: 0.2em;
 }
+
+/*
+ * Page-builder entrance animations. The hidden initial state only applies once
+ * JS adds `pb-anim-ready` to <html>, so the editor preview and any no-JS
+ * visitor always see the content. The observer then adds `is-visible`.
+ */
+.pb-anim-ready .pb-anim {
+    opacity: 0;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    will-change: opacity, transform;
+}
+
+.pb-anim-ready .pb-anim-fade-up {
+    transform: translateY(28px);
+}
+
+.pb-anim-ready .pb-anim-fade-down {
+    transform: translateY(-28px);
+}
+
+.pb-anim-ready .pb-anim-slide-left {
+    transform: translateX(32px);
+}
+
+.pb-anim-ready .pb-anim-slide-right {
+    transform: translateX(-32px);
+}
+
+.pb-anim-ready .pb-anim-zoom {
+    transform: scale(0.92);
+}
+
+.pb-anim-ready .pb-anim.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pb-anim-ready .pb-anim {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+}

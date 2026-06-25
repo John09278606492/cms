@@ -80,4 +80,25 @@ class PageBuilderDesignTest extends TestCase
         $this->assertStringContainsString('Styled heading', $html);
         $this->assertStringNotContainsString('background-image: linear-gradient(135deg', $html);
     }
+
+    public function test_entrance_animation_adds_its_classes(): void
+    {
+        $html = $this->renderPageWith(['_anim' => 'fade-up']);
+
+        $this->assertStringContainsString('pb-anim', $html);
+        $this->assertStringContainsString('pb-anim-fade-up', $html);
+    }
+
+    public function test_responsive_visibility_classes_render(): void
+    {
+        $html = $this->renderPageWith([
+            '_hide_mobile' => true,
+            '_hide_tablet' => true,
+            '_hide_desktop' => true,
+        ]);
+
+        $this->assertStringContainsString('max-md:hidden', $html);
+        $this->assertStringContainsString('md:max-lg:hidden', $html);
+        $this->assertStringContainsString('lg:hidden', $html);
+    }
 }

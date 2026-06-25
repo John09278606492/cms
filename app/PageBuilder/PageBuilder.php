@@ -168,6 +168,25 @@ class PageBuilder
                             ->default('none'),
                         ColorPicker::make('_border_color')->label('Border colour'),
                     ]),
+                Fieldset::make('Responsive & motion')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('_anim')->label('Entrance animation')
+                            ->options([
+                                'none' => 'None',
+                                'fade' => 'Fade in',
+                                'fade-up' => 'Fade up',
+                                'fade-down' => 'Fade down',
+                                'zoom' => 'Zoom in',
+                                'slide-left' => 'Slide from right',
+                                'slide-right' => 'Slide from left',
+                            ])
+                            ->default('none')
+                            ->helperText('Plays once as the block scrolls into view.'),
+                        Toggle::make('_hide_mobile')->label('Hide on mobile'),
+                        Toggle::make('_hide_tablet')->label('Hide on tablet'),
+                        Toggle::make('_hide_desktop')->label('Hide on desktop'),
+                    ]),
             ]);
     }
 

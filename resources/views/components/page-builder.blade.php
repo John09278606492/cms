@@ -81,10 +81,30 @@
                 $styles[] = "border: {$borderWidth}px solid {$borderColor}";
             }
 
-            // Outer wrapper margins.
+            $anim = $data['_anim'] ?? 'none';
+            $hideMobile = ! empty($data['_hide_mobile']);
+            $hideTablet = ! empty($data['_hide_tablet']);
+            $hideDesktop = ! empty($data['_hide_desktop']);
+
+            // Outer wrapper margins, animation and responsive visibility.
             $wrapClasses = [];
             $wrapClasses[] = $spaceMap['mt'][$mt] ?? '';
             $wrapClasses[] = $spaceMap['mb'][$mb] ?? '';
+            if ($anim !== 'none' && $anim !== null) {
+                // pb-anim* are custom classes defined in app.css; they only hide
+                // the element once JS has marked the document ready, so previews
+                // and no-JS visitors still see everything.
+                $wrapClasses[] = 'pb-anim pb-anim-' . $anim;
+            }
+            if ($hideMobile) {
+                $wrapClasses[] = 'max-md:hidden';
+            }
+            if ($hideTablet) {
+                $wrapClasses[] = 'md:max-lg:hidden';
+            }
+            if ($hideDesktop) {
+                $wrapClasses[] = 'lg:hidden';
+            }
 
             $widthClass = match ($width) {
                 'narrow' => 'mx-auto max-w-2xl',
