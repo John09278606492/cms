@@ -5,6 +5,7 @@ namespace App\PageBuilder;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\ColorPicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -59,6 +60,15 @@ class PageBuilder
             self::logoCloud(),
             self::tabs(),
             self::contactForm(),
+            self::iconBox(),
+            self::counter(),
+            self::progressBars(),
+            self::starRating(),
+            self::socialIcons(),
+            self::postsGrid(),
+            self::carousel(),
+            self::countdown(),
+            self::map(),
             self::gallery(),
             self::video(),
             self::divider(),
@@ -487,6 +497,170 @@ class PageBuilder
                             ->maxLength(255)
                             ->columnSpanFull(),
                     ]),
+            ]));
+    }
+
+    protected static function iconBox(): Block
+    {
+        return Block::make('icon_box')
+            ->label('Icon box')
+            ->icon('heroicon-o-sparkles')
+            ->preview('page-builder.blocks.icon_box')
+            ->columns(2)
+            ->schema(self::withDesign([
+                TextInput::make('icon')->label('Icon / emoji')->maxLength(8)->default('★'),
+                Select::make('align')->options(self::alignOptions())->default('center'),
+                TextInput::make('title')->required()->maxLength(120)->columnSpanFull(),
+                Textarea::make('text')->rows(3)->columnSpanFull(),
+                TextInput::make('link_label')->label('Link label')->maxLength(40),
+                TextInput::make('link_url')->label('Link URL')->maxLength(255),
+            ]));
+    }
+
+    protected static function counter(): Block
+    {
+        return Block::make('counter')
+            ->label('Animated counters')
+            ->icon('heroicon-o-calculator')
+            ->preview('page-builder.blocks.counter')
+            ->columns(2)
+            ->schema(self::withDesign([
+                TextInput::make('heading')->maxLength(160),
+                Select::make('columns')->options(['2' => '2', '3' => '3', '4' => '4'])->default('3'),
+                Repeater::make('items')
+                    ->schema([
+                        TextInput::make('value')->label('Number')->numeric()->required(),
+                        TextInput::make('prefix')->maxLength(8),
+                        TextInput::make('suffix')->maxLength(8),
+                        TextInput::make('label')->required()->maxLength(60),
+                    ])
+                    ->defaultItems(3)
+                    ->columns(2)
+                    ->columnSpanFull(),
+            ]));
+    }
+
+    protected static function progressBars(): Block
+    {
+        return Block::make('progress_bars')
+            ->label('Progress bars')
+            ->icon('heroicon-o-chart-bar-square')
+            ->preview('page-builder.blocks.progress_bars')
+            ->schema(self::withDesign([
+                TextInput::make('heading')->maxLength(160)->columnSpanFull(),
+                Repeater::make('items')
+                    ->schema([
+                        TextInput::make('label')->required()->maxLength(60),
+                        TextInput::make('percent')->numeric()->minValue(0)->maxValue(100)->required()->default(80),
+                        ColorPicker::make('color'),
+                    ])
+                    ->defaultItems(3)
+                    ->columns(3)
+                    ->columnSpanFull(),
+            ]));
+    }
+
+    protected static function starRating(): Block
+    {
+        return Block::make('star_rating')
+            ->label('Star rating')
+            ->icon('heroicon-o-star')
+            ->preview('page-builder.blocks.star_rating')
+            ->columns(2)
+            ->schema(self::withDesign([
+                Select::make('rating')->options(['1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' => '5'])->default('5'),
+                Select::make('align')->options(self::alignOptions())->default('center'),
+                TextInput::make('label')->maxLength(160)->columnSpanFull(),
+            ]));
+    }
+
+    protected static function socialIcons(): Block
+    {
+        return Block::make('social_icons')
+            ->label('Social icons')
+            ->icon('heroicon-o-share')
+            ->preview('page-builder.blocks.social_icons')
+            ->columns(2)
+            ->schema(self::withDesign([
+                Select::make('align')->options(self::alignOptions())->default('center'),
+                Select::make('style')->options(['solid' => 'Solid', 'outline' => 'Outline'])->default('solid'),
+                Repeater::make('links')
+                    ->schema([
+                        Select::make('network')
+                            ->options([
+                                'facebook' => 'Facebook', 'x' => 'X / Twitter', 'instagram' => 'Instagram',
+                                'linkedin' => 'LinkedIn', 'youtube' => 'YouTube', 'github' => 'GitHub',
+                                'tiktok' => 'TikTok', 'email' => 'Email', 'website' => 'Website',
+                            ])
+                            ->required(),
+                        TextInput::make('url')->required()->maxLength(255),
+                    ])
+                    ->defaultItems(3)
+                    ->columns(2)
+                    ->columnSpanFull(),
+            ]));
+    }
+
+    protected static function postsGrid(): Block
+    {
+        return Block::make('posts_grid')
+            ->label('Blog posts')
+            ->icon('heroicon-o-newspaper')
+            ->preview('page-builder.blocks.posts_grid')
+            ->columns(2)
+            ->schema(self::withDesign([
+                TextInput::make('heading')->maxLength(160),
+                Textarea::make('intro')->rows(2)->columnSpanFull(),
+                Select::make('count')->label('How many')->options(['3' => '3', '6' => '6', '9' => '9'])->default('3'),
+                Select::make('columns')->options(['2' => '2', '3' => '3', '4' => '4'])->default('3'),
+            ]));
+    }
+
+    protected static function carousel(): Block
+    {
+        return Block::make('carousel')
+            ->label('Image carousel')
+            ->icon('heroicon-o-rectangle-stack')
+            ->preview('page-builder.blocks.carousel')
+            ->columns(2)
+            ->schema(self::withDesign([
+                FileUpload::make('images')->image()->multiple()->reorderable()->disk('public')->directory('page-builder')->columnSpanFull(),
+                Toggle::make('autoplay')->label('Autoplay')->default(true),
+                Select::make('interval')->label('Autoplay speed')
+                    ->options(['3000' => '3 seconds', '5000' => '5 seconds', '8000' => '8 seconds'])
+                    ->default('5000'),
+                Select::make('ratio')->label('Aspect ratio')
+                    ->options(['video' => '16 : 9', 'wide' => '21 : 9', 'square' => '1 : 1'])
+                    ->default('video'),
+            ]));
+    }
+
+    protected static function countdown(): Block
+    {
+        return Block::make('countdown')
+            ->label('Countdown timer')
+            ->icon('heroicon-o-clock')
+            ->preview('page-builder.blocks.countdown')
+            ->columns(2)
+            ->schema(self::withDesign([
+                TextInput::make('heading')->maxLength(160),
+                DateTimePicker::make('until')->label('Counts down to')->required()->seconds(false),
+                TextInput::make('expired_text')->label('Message when finished')->maxLength(160)->default("We're live!")->columnSpanFull(),
+            ]));
+    }
+
+    protected static function map(): Block
+    {
+        return Block::make('map')
+            ->label('Map')
+            ->icon('heroicon-o-map-pin')
+            ->preview('page-builder.blocks.map')
+            ->columns(2)
+            ->schema(self::withDesign([
+                TextInput::make('query')->label('Address or place')->required()->maxLength(255)->columnSpanFull()
+                    ->helperText('e.g. "Eiffel Tower, Paris" or a full street address.'),
+                Select::make('height')->options(['sm' => 'Short', 'md' => 'Medium', 'lg' => 'Tall'])->default('md'),
+                Select::make('zoom')->options(['10' => 'City', '13' => 'District', '16' => 'Street'])->default('13'),
             ]));
     }
 
