@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 
 /**
@@ -106,23 +107,67 @@ class PageBuilder
      * prefixed so they never collide with a block's content fields; the front-end
      * renderer (<x-page-builder>) wraps each block with these styles.
      */
+    protected static function spacingOptions(): array
+    {
+        return ['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large'];
+    }
+
     protected static function designSection(): Section
     {
         return Section::make('Design')
             ->icon('heroicon-o-paint-brush')
             ->collapsed()
-            ->columns(2)
             ->schema([
-                ColorPicker::make('_bg')->label('Background colour'),
-                Select::make('_pad')->label('Vertical spacing')
-                    ->options(['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large'])
-                    ->default('none'),
-                Select::make('_width')->label('Container width')
-                    ->options(['default' => 'Default', 'narrow' => 'Narrow', 'wide' => 'Wide', 'full' => 'Full width'])
-                    ->default('default'),
-                Select::make('_align')->label('Text alignment')
-                    ->options(self::alignOptions())
-                    ->placeholder('Inherit'),
+                Fieldset::make('Background')
+                    ->columns(2)
+                    ->schema([
+                        ColorPicker::make('_bg')->label('Background colour'),
+                        ColorPicker::make('_grad_to')->label('Gradient to')
+                            ->helperText('Set with a background colour for a gradient.'),
+                        FileUpload::make('_bg_image')->label('Background image')
+                            ->image()->disk('public')->directory('page-builder')->imageEditor(),
+                        Select::make('_overlay')->label('Image overlay')
+                            ->options(['none' => 'None', 'light' => 'Light', 'dark' => 'Dark'])
+                            ->default('none')
+                            ->helperText('Improves text readability over an image.'),
+                    ]),
+                Fieldset::make('Spacing & size')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('_pad')->label('Vertical padding')->options(self::spacingOptions())->default('none'),
+                        Select::make('_padx')->label('Horizontal padding')->options(self::spacingOptions())->default('none'),
+                        Select::make('_mt')->label('Margin top')->options(self::spacingOptions())->default('none'),
+                        Select::make('_mb')->label('Margin bottom')->options(self::spacingOptions())->default('none'),
+                        Select::make('_width')->label('Container width')
+                            ->options(['default' => 'Default', 'narrow' => 'Narrow', 'wide' => 'Wide', 'full' => 'Full width'])
+                            ->default('default'),
+                        Select::make('_align')->label('Text alignment')->options(self::alignOptions())->placeholder('Inherit'),
+                    ]),
+                Fieldset::make('Typography')
+                    ->columns(3)
+                    ->schema([
+                        ColorPicker::make('_text_color')->label('Text colour'),
+                        Select::make('_font_size')->label('Text size')
+                            ->options(['default' => 'Default', 'sm' => 'Small', 'base' => 'Base', 'lg' => 'Large', 'xl' => 'Extra large'])
+                            ->default('default'),
+                        Select::make('_font_weight')->label('Text weight')
+                            ->options(['default' => 'Default', 'normal' => 'Normal', 'medium' => 'Medium', 'semibold' => 'Semibold', 'bold' => 'Bold'])
+                            ->default('default'),
+                    ]),
+                Fieldset::make('Border & shadow')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('_radius')->label('Rounded corners')
+                            ->options(['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large', 'full' => 'Pill / circle'])
+                            ->default('none'),
+                        Select::make('_shadow')->label('Shadow')
+                            ->options(['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large'])
+                            ->default('none'),
+                        Select::make('_border_width')->label('Border width')
+                            ->options(['none' => 'None', '1' => '1px', '2' => '2px', '4' => '4px'])
+                            ->default('none'),
+                        ColorPicker::make('_border_color')->label('Border colour'),
+                    ]),
             ]);
     }
 
