@@ -138,6 +138,40 @@ class ContactFormTest extends TestCase
         $this->assertSame(0, ContactMessage::query()->count());
     }
 
+    public function test_editor_preview_does_not_emit_a_form_that_would_block_the_page_editor(): void
+    {
+        // Rendered as a Filament block preview there is no public {site} route,
+        // so the partial must NOT emit a nested <form> or `required` inputs.
+        // Those would be hoisted into the editor's own form by the browser and
+        // block its Save button (the original "can't save" bug).
+        $html = view('page-builder.blocks.contact_form', [
+            'heading' => 'Talk to us',
+            'button_label' => 'Send',
+            'show_subject' => true,
+            'show_phone' => true,
+            'send_email' => true,
+            'to_email' => 'owner@example.com',
+            'success_message' => 'Thanks',
+        ])->render();
+
+        $this->assertStringNotContainsString('<form', $html);
+        $this->assertStringNotContainsString('required', $html);
+        $this->assertStringNotContainsString('name="message"', $html);
+        // It still shows the fields visually so the preview is meaningful.
+        $this->assertStringContainsString('Message', $html);
+    }
+
+    public function test_public_page_renders_a_real_submittable_form(): void
+    {
+        $site = $this->siteWithContactForm();
+
+        $this->get("/sites/{$site->slug}")
+            ->assertOk()
+            ->assertSee('<form', false)
+            ->assertSee('name="message"', false)
+            ->assertSee(route('sites.contact', $site), false);
+    }
+
     public function test_a_notification_email_is_sent_to_the_configured_recipient(): void
     {
         Mail::fake();
