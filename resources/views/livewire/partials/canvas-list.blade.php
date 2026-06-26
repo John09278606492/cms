@@ -7,10 +7,10 @@
             $childPath = $listPath === '' ? (string) $i : $listPath . '.' . $i;
             $zoneKey = $listPath . ':' . $i;
         @endphp
-        <div class="transition-all" x-show="dragType !== null"
+        <div class="transition-all"
              x-on:dragover.prevent.stop="overKey = '{{ $zoneKey }}'"
              x-on:drop.prevent.stop="handleDropAt('{{ $listPath }}', {{ $i }})"
-             :class="overKey === '{{ $zoneKey }}' ? 'h-12 m-1 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : 'h-1.5'"></div>
+             :class="overKey === '{{ $zoneKey }}' ? 'h-12 my-1 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : (dragType !== null ? 'h-3' : 'h-4')"></div>
         @include('livewire.partials.canvas-block', ['block' => $block, 'path' => $childPath, 'labels' => $labels])
     @endforeach
 
@@ -23,9 +23,9 @@
         </div>
     @else
         @php $endKey = $listPath . ':' . count($blocks); @endphp
-        <div class="transition-all" x-show="dragType !== null"
+        <div class="transition-all"
              x-on:dragover.prevent.stop="overKey = '{{ $endKey }}'"
              x-on:drop.prevent.stop="handleDropAt('{{ $listPath }}', {{ count($blocks) }})"
-             :class="overKey === '{{ $endKey }}' ? 'h-12 m-1 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : 'h-4'"></div>
+             :class="overKey === '{{ $endKey }}' ? 'h-12 my-1 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : 'h-4'"></div>
     @endif
 </div>

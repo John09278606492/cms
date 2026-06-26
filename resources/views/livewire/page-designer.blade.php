@@ -85,10 +85,10 @@
         {{-- Canvas --}}
         <main class="flex-1 overflow-y-auto bg-stone-200 p-6">
             <div class="mx-auto {{ $canvasWidth }} transition-[max-width] duration-300">
-                <div class="min-h-[60vh] overflow-hidden rounded-2xl bg-white p-2 shadow-sm"
+                <div class="min-h-[70vh] overflow-hidden rounded-xl bg-white shadow-sm"
                      x-on:dragover.prevent="$event.dataTransfer.dropEffect = (dragType === 'add' ? 'copy' : 'move')">
                     @if (empty($blocks))
-                        <div class="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center"
+                        <div class="flex min-h-[70vh] flex-col items-center justify-center gap-3 p-10 text-center"
                              x-on:dragover.prevent.stop="overKey = ':0'"
                              x-on:drop.prevent.stop="handleDropAt('', 0)"
                              :class="overKey === ':0' && dragType ? 'bg-amber-50 ring-2 ring-inset ring-amber-300' : ''">
@@ -97,7 +97,10 @@
                             <p class="text-sm text-stone-400">Drag a widget here, or click one on the left to start building.</p>
                         </div>
                     @else
-                        @include('livewire.partials.canvas-list', ['blocks' => $blocks, 'listPath' => '', 'labels' => $labels])
+                        {{-- Mirror the live site's content container (max-w-4xl px-6). --}}
+                        <div class="mx-auto max-w-4xl px-6 py-8">
+                            @include('livewire.partials.canvas-list', ['blocks' => $blocks, 'listPath' => '', 'labels' => $labels])
+                        </div>
                     @endif
                 </div>
             </div>

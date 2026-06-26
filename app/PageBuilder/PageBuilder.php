@@ -335,8 +335,11 @@ class PageBuilder
                     ->columns(2)
                     ->schema([
                         Select::make('_radius')->label('Rounded corners')
-                            ->options(['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large', 'full' => 'Pill / circle'])
-                            ->default('none'),
+                            ->options(['none' => 'None (square)', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large', 'full' => 'Pill / circle'])
+                            ->placeholder('Default'),
+                        TextInput::make('_radius_custom')->label('Custom corners')
+                            ->placeholder('e.g. 12px or 20px 0 20px 0')
+                            ->helperText('Overrides the preset. Per-corner: top-left top-right bottom-right bottom-left.'),
                         Select::make('_shadow')->label('Shadow')
                             ->options(['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large'])
                             ->default('none'),

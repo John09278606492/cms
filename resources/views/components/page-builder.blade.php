@@ -28,7 +28,7 @@
             $textColor = $data['_text_color'] ?? null;
             $fontSize = $data['_font_size'] ?? 'default';
             $fontWeight = $data['_font_weight'] ?? 'default';
-            $radius = $data['_radius'] ?? 'none';
+            $radius = $data['_radius'] ?? '';
             $shadow = $data['_shadow'] ?? 'none';
             $borderWidth = $data['_border_width'] ?? 'none';
             $borderColor = $data['_border_color'] ?? null;
@@ -48,7 +48,21 @@
             $boxClasses[] = match ($align) { 'center' => 'text-center', 'right' => 'text-right', 'left' => 'text-left', default => '' };
             $boxClasses[] = match ($fontSize) { 'sm' => 'text-sm', 'base' => 'text-base', 'lg' => 'text-lg', 'xl' => 'text-xl', default => '' };
             $boxClasses[] = match ($fontWeight) { 'normal' => 'font-normal', 'medium' => 'font-medium', 'semibold' => 'font-semibold', 'bold' => 'font-bold', default => '' };
-            $boxClasses[] = match ($radius) { 'sm' => 'rounded-lg', 'md' => 'rounded-xl', 'lg' => 'rounded-2xl', 'xl' => 'rounded-3xl', 'full' => 'rounded-full', default => ($hasBackground ? 'rounded-2xl' : '') };
+            // Corner radius: a custom value (any CSS, incl. per-corner like
+            // "12px 0 12px 0") wins; otherwise a preset. 'none' is honoured
+            // explicitly so a backgrounded box can have square edges.
+            $radiusCustom = trim((string) ($data['_radius_custom'] ?? ''));
+            if ($radiusCustom === '') {
+                $boxClasses[] = match ($radius) {
+                    'none' => '',
+                    'sm' => 'rounded-lg',
+                    'md' => 'rounded-xl',
+                    'lg' => 'rounded-2xl',
+                    'xl' => 'rounded-3xl',
+                    'full' => 'rounded-full',
+                    default => ($hasBackground ? 'rounded-2xl' : ''),
+                };
+            }
             $boxClasses[] = match ($shadow) { 'sm' => 'shadow', 'md' => 'shadow-md', 'lg' => 'shadow-lg', 'xl' => 'shadow-2xl', default => '' };
             if ($hasImage) {
                 $boxClasses[] = 'bg-cover bg-center';
@@ -79,6 +93,9 @@
             }
             if ($borderWidth !== 'none' && ! empty($borderColor)) {
                 $styles[] = "border: {$borderWidth}px solid {$borderColor}";
+            }
+            if ($radiusCustom !== '') {
+                $styles[] = "border-radius: {$radiusCustom}";
             }
 
             // Size controls. Width always gets max-width:100% so a fixed px width

@@ -85,6 +85,21 @@ class PageBuilderDesignTest extends TestCase
         $this->assertMatchesRegularExpression('/\.pb-el-[A-Za-z0-9]{8}\{/', $html);
     }
 
+    public function test_corners_can_be_square_or_custom(): void
+    {
+        // Explicit "none" gives square corners even with a background.
+        $square = $this->renderPageWith(['_bg' => '#eeeeee', '_radius' => 'none']);
+        $this->assertStringNotContainsString('rounded-2xl', $square);
+
+        // No radius set keeps the rounded default for a backgrounded box.
+        $default = $this->renderPageWith(['_bg' => '#eeeeee']);
+        $this->assertStringContainsString('rounded-2xl', $default);
+
+        // A custom value (incl. per-corner) is applied verbatim.
+        $custom = $this->renderPageWith(['_bg' => '#eeeeee', '_radius_custom' => '20px 0 20px 0']);
+        $this->assertStringContainsString('border-radius: 20px 0 20px 0', $custom);
+    }
+
     public function test_offset_and_layer_controls_render(): void
     {
         $html = $this->renderPageWith(['_offset_x' => '20px', '_offset_y' => '-40px', '_z' => '5']);
