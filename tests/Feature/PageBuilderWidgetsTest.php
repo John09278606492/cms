@@ -53,6 +53,26 @@ class PageBuilderWidgetsTest extends TestCase
         $this->assertStringContainsString('google.com/maps?q=Eiffel', $html);
     }
 
+    public function test_container_renders_its_nested_widgets(): void
+    {
+        $site = Site::query()->create(['name' => 'Box', 'slug' => 'box-site', 'is_active' => true]);
+
+        $html = $this->publish($site, [
+            ['type' => 'container', 'data' => [
+                'direction' => 'row',
+                'gap' => 'md',
+                'blocks' => [
+                    ['type' => 'heading', 'data' => ['text' => 'Inside the box', 'level' => 'h3']],
+                    ['type' => 'button', 'data' => ['label' => 'Nested button', 'url' => '#', 'style' => 'primary']],
+                ],
+            ]],
+        ]);
+
+        $this->assertStringContainsString('Inside the box', $html);
+        $this->assertStringContainsString('Nested button', $html);
+        $this->assertStringContainsString('flex-row', $html);
+    }
+
     public function test_posts_grid_pulls_published_posts_for_the_site(): void
     {
         $site = Site::query()->create(['name' => 'Blog', 'slug' => 'blog-site', 'is_active' => true]);

@@ -32,14 +32,16 @@ class PageBuilder
     {
         return [
             ...self::contentBlocks(),
+            self::container(),
             self::columns(),
         ];
     }
 
     /**
      * Widget palette metadata for the visual designer — name, label, icon and a
-     * group, derived from the same Block definitions used by the form editor so
-     * the two never drift apart.
+     * group. Kept as a lightweight static map (not derived from the Filament
+     * Block objects) so rendering the designer never has to build the heavy
+     * nested form schemas. A test guards it against drifting from blocks().
      *
      * @return array<int, array{name: string, label: string, icon: string, group: string}>
      */
@@ -47,14 +49,54 @@ class PageBuilder
     {
         $groups = self::paletteGroups();
 
-        return collect(self::blocks())
-            ->map(fn (Block $block): array => [
-                'name' => $block->getName(),
-                'label' => (string) $block->getLabel(),
-                'icon' => (string) $block->getIcon(),
-                'group' => $groups[$block->getName()] ?? 'Content',
+        return collect(self::paletteMeta())
+            ->map(fn (array $meta, string $name): array => [
+                'name' => $name,
+                'label' => $meta[0],
+                'icon' => $meta[1],
+                'group' => $groups[$name] ?? 'Content',
             ])
+            ->values()
             ->all();
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string}> name => [label, icon]
+     */
+    public static function paletteMeta(): array
+    {
+        return [
+            'hero' => ['Hero', 'heroicon-o-rectangle-group'],
+            'heading' => ['Heading', 'heroicon-o-bars-3-bottom-left'],
+            'paragraph' => ['Text', 'heroicon-o-document-text'],
+            'image' => ['Image', 'heroicon-o-photo'],
+            'media_text' => ['Image + text', 'heroicon-o-view-columns'],
+            'button' => ['Button', 'heroicon-o-cursor-arrow-rays'],
+            'feature_grid' => ['Feature grid', 'heroicon-o-squares-2x2'],
+            'stats' => ['Stats', 'heroicon-o-chart-bar'],
+            'accordion' => ['Accordion / FAQ', 'heroicon-o-queue-list'],
+            'testimonial' => ['Testimonial', 'heroicon-o-chat-bubble-bottom-center-text'],
+            'call_to_action' => ['Call to action', 'heroicon-o-megaphone'],
+            'pricing_table' => ['Pricing table', 'heroicon-o-currency-dollar'],
+            'logo_cloud' => ['Logo cloud', 'heroicon-o-building-office-2'],
+            'tabs' => ['Tabs', 'heroicon-o-folder'],
+            'contact_form' => ['Contact form', 'heroicon-o-envelope'],
+            'icon_box' => ['Icon box', 'heroicon-o-sparkles'],
+            'counter' => ['Animated counters', 'heroicon-o-calculator'],
+            'progress_bars' => ['Progress bars', 'heroicon-o-chart-bar-square'],
+            'star_rating' => ['Star rating', 'heroicon-o-star'],
+            'social_icons' => ['Social icons', 'heroicon-o-share'],
+            'posts_grid' => ['Blog posts', 'heroicon-o-newspaper'],
+            'carousel' => ['Image carousel', 'heroicon-o-rectangle-stack'],
+            'countdown' => ['Countdown timer', 'heroicon-o-clock'],
+            'map' => ['Map', 'heroicon-o-map-pin'],
+            'gallery' => ['Gallery', 'heroicon-o-photo'],
+            'video' => ['Video', 'heroicon-o-play-circle'],
+            'divider' => ['Divider', 'heroicon-o-minus'],
+            'spacer' => ['Spacer', 'heroicon-o-arrows-up-down'],
+            'container' => ['Container', 'heroicon-o-square-3-stack-3d'],
+            'columns' => ['Columns', 'heroicon-o-view-columns'],
+        ];
     }
 
     /**
@@ -74,7 +116,7 @@ class PageBuilder
     protected static function paletteGroups(): array
     {
         return [
-            'columns' => 'Layout', 'spacer' => 'Layout', 'divider' => 'Layout',
+            'container' => 'Layout', 'columns' => 'Layout', 'spacer' => 'Layout', 'divider' => 'Layout',
             'hero' => 'Sections', 'call_to_action' => 'Sections', 'feature_grid' => 'Sections',
             'pricing_table' => 'Sections', 'stats' => 'Sections', 'posts_grid' => 'Sections',
             'heading' => 'Content', 'paragraph' => 'Content', 'button' => 'Content',
@@ -122,6 +164,7 @@ class PageBuilder
             'divider' => [],
             'spacer' => ['height' => 'md'],
             'columns' => ['gap' => 'md', 'columns' => [['blocks' => []], ['blocks' => []]]],
+            'container' => ['direction' => 'column', 'gap' => 'md', 'align' => 'stretch', 'blocks' => []],
         ];
     }
 
@@ -163,6 +206,27 @@ class PageBuilder
             self::divider(),
             self::spacer(),
         ];
+    }
+
+    protected static function container(): Block
+    {
+        return Block::make('container')
+            ->label('Container')
+            ->icon('heroicon-o-square-3-stack-3d')
+            ->preview('page-builder.blocks.container')
+            ->schema(self::withDesign([
+                Select::make('direction')->label('Layout')
+                    ->options(['column' => 'Stacked', 'row' => 'Side by side'])->default('column'),
+                Select::make('gap')->options(['sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large'])->default('md'),
+                Select::make('align')->label('Align items')
+                    ->options(['start' => 'Start', 'center' => 'Center', 'end' => 'End', 'stretch' => 'Stretch'])->default('stretch'),
+                Builder::make('blocks')
+                    ->label('Content')
+                    ->blocks(self::contentBlocks())
+                    ->blockPreviews()
+                    ->addActionLabel('Add a block')
+                    ->columnSpanFull(),
+            ]));
     }
 
     protected static function columns(): Block

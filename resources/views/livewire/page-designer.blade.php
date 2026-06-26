@@ -177,6 +177,16 @@
                         </div>
                     @endif
 
+                    {{-- Container: manage the widgets inside it --}}
+                    @if ($sel['type'] === 'container')
+                        <div class="mt-5 space-y-2">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Contents</p>
+                            <div class="rounded-lg border border-stone-200 bg-stone-50 p-2.5">
+                                @include('livewire.partials.child-list', ['listPath' => $selectedPath . '.data.blocks', 'childBlocks' => $selData['blocks'] ?? [], 'labels' => $labels])
+                            </div>
+                        </div>
+                    @endif
+
                     {{-- Columns container: manage the widgets inside each column --}}
                     @if ($sel['type'] === 'columns')
                         @php $cols = is_array($selData['columns'] ?? null) ? $selData['columns'] : []; @endphp
@@ -186,10 +196,6 @@
                                 <button wire:click="addColumn('{{ $selectedPath }}')" class="text-xs font-medium text-amber-700 hover:text-amber-800">+ Column</button>
                             </div>
                             @foreach ($cols as $c => $col)
-                                @php
-                                    $colBlocks = is_array($col['blocks'] ?? null) ? $col['blocks'] : [];
-                                    $colList = $selectedPath . '.data.columns.' . $c . '.blocks';
-                                @endphp
                                 <div wire:key="col-{{ $selectedPath }}-{{ $c }}" class="rounded-lg border border-stone-200 bg-stone-50 p-2.5">
                                     <div class="mb-1.5 flex items-center justify-between">
                                         <span class="text-[11px] font-semibold uppercase tracking-wide text-stone-400">Column {{ $c + 1 }}</span>
@@ -197,31 +203,7 @@
                                             <button wire:click="removeColumn('{{ $selectedPath }}', {{ $c }})" class="text-xs text-red-500 hover:text-red-700">Remove</button>
                                         @endif
                                     </div>
-                                    <div class="space-y-1">
-                                        @forelse ($colBlocks as $j => $cb)
-                                            <div wire:key="cb-{{ $selectedPath }}-{{ $c }}-{{ $j }}" class="flex items-center justify-between rounded-md border border-stone-200 bg-white px-2 py-1">
-                                                <button wire:click="select('{{ $colList . '.' . $j }}')" class="truncate text-left text-xs font-medium text-stone-700 hover:text-stone-950">{{ $labels[$cb['type']] ?? $cb['type'] }}</button>
-                                                <span class="flex shrink-0 items-center gap-0.5 text-stone-400">
-                                                    <button wire:click="moveUp('{{ $colList . '.' . $j }}')" title="Up" class="rounded p-0.5 hover:bg-stone-100">@svg('heroicon-o-chevron-up', 'h-3.5 w-3.5')</button>
-                                                    <button wire:click="moveDown('{{ $colList . '.' . $j }}')" title="Down" class="rounded p-0.5 hover:bg-stone-100">@svg('heroicon-o-chevron-down', 'h-3.5 w-3.5')</button>
-                                                    <button wire:click="remove('{{ $colList . '.' . $j }}')" title="Remove" class="rounded p-0.5 text-red-400 hover:bg-red-50">@svg('heroicon-o-x-mark', 'h-3.5 w-3.5')</button>
-                                                </span>
-                                            </div>
-                                        @empty
-                                            <p class="px-1 py-1 text-xs text-stone-400">No widgets yet.</p>
-                                        @endforelse
-                                    </div>
-                                    <div x-data="{ w: '' }" class="mt-2 flex gap-1">
-                                        <select x-model="w" class="w-full rounded-md border border-stone-300 px-2 py-1 text-xs text-stone-700">
-                                            <option value="">Add widget…</option>
-                                            @foreach ($this->palette as $p)
-                                                @if ($p['name'] !== 'columns')
-                                                    <option value="{{ $p['name'] }}">{{ $p['label'] }}</option>
-                                                @endif
-                                            @endforeach
-                                        </select>
-                                        <button x-on:click="if (w) { $wire.addInto('{{ $colList }}', w); w = ''; }" class="shrink-0 rounded-md bg-stone-900 px-2.5 py-1 text-xs font-medium text-white hover:bg-stone-700">Add</button>
-                                    </div>
+                                    @include('livewire.partials.child-list', ['listPath' => $selectedPath . '.data.columns.' . $c . '.blocks', 'childBlocks' => is_array($col['blocks'] ?? null) ? $col['blocks'] : [], 'labels' => $labels])
                                 </div>
                             @endforeach
                         </div>

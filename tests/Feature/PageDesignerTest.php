@@ -205,6 +205,16 @@ class PageDesignerTest extends TestCase
         $this->assertNotEmpty(\App\PageBuilder\BlockFields::design());
     }
 
+    public function test_palette_metadata_matches_the_block_definitions(): void
+    {
+        $blockNames = collect(\App\PageBuilder\PageBuilder::blocks())
+            ->map(fn ($block): string => $block->getName())->sort()->values()->all();
+        $paletteNames = collect(\App\PageBuilder\PageBuilder::paletteMeta())
+            ->keys()->sort()->values()->all();
+
+        $this->assertSame($blockNames, $paletteNames);
+    }
+
     public function test_a_widget_can_be_nested_inside_a_column_and_edited(): void
     {
         $this->actingAs($this->owner);
@@ -229,6 +239,26 @@ class PageDesignerTest extends TestCase
         $saved = $this->page->fresh()->content;
         $this->assertSame('button', $saved[1]['data']['columns'][0]['blocks'][0]['type']);
         $this->assertSame('Buy now', $saved[1]['data']['columns'][0]['blocks'][0]['data']['label']);
+    }
+
+    public function test_a_container_holds_and_edits_child_widgets(): void
+    {
+        $this->actingAs($this->owner);
+
+        $component = Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'container')   // selectedPath '1'
+            ->assertSet('selectedPath', '1')
+            ->call('addInto', '1.data.blocks', 'button')
+            ->assertSet('selectedPath', '1.data.blocks.0')
+            ->assertSet('blocks.1.data.blocks.0.type', 'button');
+
+        $component->set('blocks.1.data.blocks.0.data.label', 'Inside button')
+            ->call('save');
+
+        $saved = $this->page->fresh()->content;
+        $this->assertSame('container', $saved[1]['type']);
+        $this->assertSame('button', $saved[1]['data']['blocks'][0]['type']);
+        $this->assertSame('Inside button', $saved[1]['data']['blocks'][0]['data']['label']);
     }
 
     public function test_nested_widgets_and_columns_can_be_removed(): void

@@ -262,6 +262,11 @@ class BlockFields
             'columns' => [
                 ['key' => 'gap', 'label' => 'Gap', 'type' => 'select', 'options' => ['sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large']],
             ],
+            'container' => [
+                ['key' => 'direction', 'label' => 'Layout', 'type' => 'select', 'options' => ['column' => 'Stacked', 'row' => 'Side by side']],
+                ['key' => 'gap', 'label' => 'Gap', 'type' => 'select', 'options' => ['sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large']],
+                ['key' => 'align', 'label' => 'Align items', 'type' => 'select', 'options' => ['start' => 'Start', 'center' => 'Center', 'end' => 'End', 'stretch' => 'Stretch']],
+            ],
             'divider' => [],
         ];
     }
