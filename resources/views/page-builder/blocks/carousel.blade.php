@@ -23,8 +23,8 @@
             <button type="button" data-carousel-next aria-label="Next"
                     class="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-stone-900 opacity-0 transition group-hover:opacity-100 hover:bg-white">&#8250;</button>
             <div class="pb-carousel-dots absolute inset-x-0 bottom-3 flex justify-center gap-2">
-                @foreach ($images as $i => $img)
-                    <button type="button" data-carousel-dot="{{ $i }}" aria-label="Slide {{ $i + 1 }}"
+                @foreach ($images as $img)
+                    <button type="button" data-carousel-dot="{{ $loop->index }}" aria-label="Slide {{ $loop->iteration }}"
                             class="h-2.5 w-2.5 rounded-full bg-white/60 transition data-[active]:bg-white"></button>
                 @endforeach
             </div>

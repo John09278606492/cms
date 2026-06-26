@@ -53,6 +53,24 @@ class PageBuilderWidgetsTest extends TestCase
         $this->assertStringContainsString('google.com/maps?q=Eiffel', $html);
     }
 
+    public function test_carousel_and_tabs_survive_uuid_keyed_data_from_the_editor(): void
+    {
+        // In the form editor, repeater/file-upload items are keyed by UUIDs, not
+        // 0,1,2 — so loop-key arithmetic used to crash the preview.
+        $carousel = view('page-builder.blocks.carousel', [
+            'images' => ['a1b2' => 'page-builder/a.jpg', 'c3d4' => 'page-builder/b.jpg'],
+            'ratio' => 'video',
+        ])->render();
+
+        $tabs = view('page-builder.blocks.tabs', [
+            'items' => ['u1' => ['label' => 'One', 'content' => '<p>1</p>'], 'u2' => ['label' => 'Two', 'content' => '<p>2</p>']],
+        ])->render();
+
+        $this->assertStringContainsString('data-carousel-dot="1"', $carousel);
+        $this->assertStringContainsString('data-pb-tab="0"', $tabs);
+        $this->assertStringContainsString('data-pb-tab="1"', $tabs);
+    }
+
     public function test_container_renders_its_nested_widgets(): void
     {
         $site = Site::query()->create(['name' => 'Box', 'slug' => 'box-site', 'is_active' => true]);

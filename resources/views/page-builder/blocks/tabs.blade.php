@@ -5,17 +5,17 @@
 @if (! empty($items))
     <section class="mx-auto max-w-3xl" data-pb-tabs id="{{ $uid }}">
         <div class="flex flex-wrap gap-1 border-b border-stone-200" role="tablist">
-            @foreach ($items as $i => $item)
+            @foreach ($items as $item)
                 <button type="button"
-                        data-pb-tab="{{ $i }}"
-                        class="-mb-px rounded-t-lg border-b-2 px-4 py-2.5 text-sm font-medium transition {{ $i === 0 ? 'border-stone-950 text-stone-950' : 'border-transparent text-stone-500 hover:text-stone-800' }}">
-                    {{ $item['label'] ?? ('Tab ' . ($i + 1)) }}
+                        data-pb-tab="{{ $loop->index }}"
+                        class="-mb-px rounded-t-lg border-b-2 px-4 py-2.5 text-sm font-medium transition {{ $loop->first ? 'border-stone-950 text-stone-950' : 'border-transparent text-stone-500 hover:text-stone-800' }}">
+                    {{ $item['label'] ?? ('Tab ' . $loop->iteration) }}
                 </button>
             @endforeach
         </div>
         <div class="pt-5">
-            @foreach ($items as $i => $item)
-                <div data-pb-panel="{{ $i }}" class="cms-prose leading-7 text-stone-700 {{ $i !== 0 ? 'pb-tab-hidden' : '' }}">
+            @foreach ($items as $item)
+                <div data-pb-panel="{{ $loop->index }}" class="cms-prose leading-7 text-stone-700 {{ ! $loop->first ? 'pb-tab-hidden' : '' }}">
                     {!! \Filament\Forms\Components\RichEditor\RichContentRenderer::make($item['content'] ?? '')->toHtml() !!}
                 </div>
             @endforeach
