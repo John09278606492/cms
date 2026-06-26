@@ -31,4 +31,15 @@
     .cms-forge-panel-alert-stack:not(:has(> .fi-wi-widget:not([hidden]))) {
         display: none;
     }
+
+    /*
+     * Page-builder "Add a block" palette: keep the widget list inside a fixed,
+     * scrollable panel so a long list of widgets never stretches the editor and
+     * interferes with the design canvas.
+     */
+    .fi-fo-builder-block-picker .fi-dropdown-list {
+        max-height: 60vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
 }

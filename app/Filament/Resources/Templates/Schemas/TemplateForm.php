@@ -24,6 +24,8 @@ class TemplateForm
                 ->blocks(PageBuilder::blocks())
                 ->blockPreviews()
                 ->addActionLabel('Add a block')
+                ->blockPickerColumns(2)
+                ->blockPickerWidth('xl')
                 ->collapsible()
                 ->blockNumbers(false)
                 ->columnSpanFull(),
