@@ -11,6 +11,7 @@ use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
+use Filament\Facades\Filament;
 use Filament\Resources\Pages\EditRecord;
 
 class EditPage extends EditRecord
@@ -53,6 +54,12 @@ class EditPage extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('designer')
+                ->label('Open designer')
+                ->icon('heroicon-o-paint-brush')
+                ->color('primary')
+                ->url(fn (): string => route('pages.designer', ['site' => Filament::getTenant(), 'page' => $this->getRecord()]))
+                ->visible(fn (): bool => Filament::getTenant() !== null && ! $this->getRecord()->trashed()),
             Action::make('preview')
                 ->label('Preview')
                 ->icon('heroicon-o-eye')

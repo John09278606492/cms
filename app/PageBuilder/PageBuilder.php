@@ -37,6 +37,95 @@ class PageBuilder
     }
 
     /**
+     * Widget palette metadata for the visual designer — name, label, icon and a
+     * group, derived from the same Block definitions used by the form editor so
+     * the two never drift apart.
+     *
+     * @return array<int, array{name: string, label: string, icon: string, group: string}>
+     */
+    public static function palette(): array
+    {
+        $groups = self::paletteGroups();
+
+        return collect(self::blocks())
+            ->map(fn (Block $block): array => [
+                'name' => $block->getName(),
+                'label' => (string) $block->getLabel(),
+                'icon' => (string) $block->getIcon(),
+                'group' => $groups[$block->getName()] ?? 'Content',
+            ])
+            ->all();
+    }
+
+    /**
+     * Sensible starter data for a freshly-dropped widget so it is visible and
+     * editable immediately.
+     *
+     * @return array<string, mixed>
+     */
+    public static function defaultData(string $name): array
+    {
+        return self::blockDefaults()[$name] ?? [];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected static function paletteGroups(): array
+    {
+        return [
+            'columns' => 'Layout', 'spacer' => 'Layout', 'divider' => 'Layout',
+            'hero' => 'Sections', 'call_to_action' => 'Sections', 'feature_grid' => 'Sections',
+            'pricing_table' => 'Sections', 'stats' => 'Sections', 'posts_grid' => 'Sections',
+            'heading' => 'Content', 'paragraph' => 'Content', 'button' => 'Content',
+            'icon_box' => 'Content', 'accordion' => 'Content', 'tabs' => 'Content',
+            'testimonial' => 'Content', 'star_rating' => 'Content', 'counter' => 'Content',
+            'progress_bars' => 'Content', 'countdown' => 'Content', 'contact_form' => 'Content',
+            'social_icons' => 'Content',
+            'image' => 'Media', 'media_text' => 'Media', 'gallery' => 'Media',
+            'carousel' => 'Media', 'video' => 'Media', 'logo_cloud' => 'Media', 'map' => 'Media',
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    protected static function blockDefaults(): array
+    {
+        return [
+            'hero' => ['eyebrow' => 'Welcome', 'heading' => 'Your headline goes here', 'copy' => 'A short supporting sentence that explains the value.', 'primary_label' => 'Get started', 'primary_url' => '#', 'surface' => 'contrast', 'align' => 'center'],
+            'heading' => ['text' => 'New heading', 'level' => 'h2', 'align' => 'left'],
+            'paragraph' => ['content' => '<p>New text block. Select it to edit the content.</p>', 'width' => 'content'],
+            'image' => ['width' => 'content', 'rounded' => true],
+            'media_text' => ['image_side' => 'left', 'heading' => 'A section heading', 'body' => '<p>Describe this section here.</p>'],
+            'button' => ['label' => 'Click me', 'url' => '#', 'style' => 'primary', 'align' => 'left'],
+            'feature_grid' => ['heading' => 'Features', 'columns' => '3', 'items' => [['emoji' => '⚡', 'title' => 'Feature one', 'description' => 'Describe it.'], ['emoji' => '🔒', 'title' => 'Feature two', 'description' => 'Describe it.'], ['emoji' => '💜', 'title' => 'Feature three', 'description' => 'Describe it.']]],
+            'stats' => ['columns' => '3', 'items' => [['value' => '10+', 'label' => 'Years'], ['value' => '5k', 'label' => 'Customers'], ['value' => '99%', 'label' => 'Uptime']]],
+            'accordion' => ['heading' => 'FAQ', 'items' => [['question' => 'A question?', 'answer' => '<p>The answer.</p>']]],
+            'testimonial' => ['quote' => 'A short, glowing quote goes here.', 'author' => 'Happy Customer', 'role' => 'Role, Company'],
+            'call_to_action' => ['heading' => 'Ready to begin?', 'copy' => 'Add a final nudge here.', 'button_label' => 'Get started', 'button_url' => '#', 'theme' => 'amber'],
+            'pricing_table' => ['heading' => 'Pricing', 'columns' => '3', 'plans' => [['name' => 'Starter', 'price' => '$0', 'period' => '/mo', 'features' => "Feature\nFeature", 'button_label' => 'Choose', 'button_url' => '#'], ['name' => 'Pro', 'price' => '$29', 'period' => '/mo', 'featured' => true, 'features' => "Everything\nPlus more", 'button_label' => 'Choose', 'button_url' => '#']]],
+            'logo_cloud' => ['heading' => 'Trusted by', 'grayscale' => true],
+            'tabs' => ['items' => [['label' => 'Tab one', 'content' => '<p>First tab.</p>'], ['label' => 'Tab two', 'content' => '<p>Second tab.</p>']]],
+            'contact_form' => ['heading' => 'Get in touch', 'button_label' => 'Send message', 'show_subject' => true, 'send_email' => true],
+            'icon_box' => ['icon' => '★', 'title' => 'Icon box', 'text' => 'A short description.', 'align' => 'center'],
+            'counter' => ['columns' => '3', 'items' => [['value' => 100, 'suffix' => '+', 'label' => 'Projects'], ['value' => 50, 'label' => 'Clients'], ['value' => 5, 'suffix' => '★', 'label' => 'Rating']]],
+            'progress_bars' => ['heading' => 'Skills', 'items' => [['label' => 'Design', 'percent' => 90], ['label' => 'Development', 'percent' => 75]]],
+            'star_rating' => ['rating' => '5', 'label' => 'Loved by customers', 'align' => 'center'],
+            'social_icons' => ['align' => 'center', 'style' => 'solid', 'links' => [['network' => 'facebook', 'url' => '#'], ['network' => 'instagram', 'url' => '#']]],
+            'posts_grid' => ['heading' => 'Latest posts', 'count' => '3', 'columns' => '3'],
+            'carousel' => ['autoplay' => true, 'interval' => '5000', 'ratio' => 'video'],
+            'countdown' => ['heading' => 'Countdown', 'until' => now()->addDays(7)->setTime(12, 0)->toDateTimeString(), 'expired_text' => "We're live!"],
+            'map' => ['query' => 'Eiffel Tower, Paris', 'height' => 'md', 'zoom' => '13'],
+            'gallery' => ['columns' => '3'],
+            'video' => ['width' => 'content'],
+            'divider' => [],
+            'spacer' => ['height' => 'md'],
+            'columns' => ['gap' => 'md', 'columns' => [['blocks' => []], ['blocks' => []]]],
+        ];
+    }
+
+    /**
      * Blocks that can live inside a column. Excludes the Columns block itself to
      * avoid infinite nesting.
      *

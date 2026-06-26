@@ -1,0 +1,136 @@
+@php
+    $labels = collect($this->palette)->pluck('label', 'name');
+    $grouped = collect($this->palette)->groupBy('group');
+    $canvasWidth = match ($device) {
+        'mobile' => 'max-w-[375px]',
+        'tablet' => 'max-w-[768px]',
+        default => 'max-w-5xl',
+    };
+    $backUrl = \App\Filament\Resources\Pages\PageResource::getUrl('edit', ['record' => $pageId], panel: 'admin', tenant: $site);
+@endphp
+<div class="flex h-screen flex-col" x-data="{}">
+    {{-- Top bar --}}
+    <header class="flex items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 py-2.5">
+        <div class="flex items-center gap-3">
+            <a href="{{ $backUrl }}" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-stone-600 hover:bg-stone-100">
+                @svg('heroicon-o-arrow-left', 'h-4 w-4') Exit
+            </a>
+            <span class="text-sm font-semibold text-stone-900">{{ $pageTitle }}</span>
+            @if ($dirty)
+                <span class="inline-flex items-center gap-1 text-xs text-amber-600"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Unsaved</span>
+            @endif
+        </div>
+
+        <div class="flex items-center gap-1 rounded-xl bg-stone-100 p-1">
+            @foreach (['desktop' => 'heroicon-o-computer-desktop', 'tablet' => 'heroicon-o-device-tablet', 'mobile' => 'heroicon-o-device-phone-mobile'] as $d => $icon)
+                <button wire:click="$set('device', '{{ $d }}')" title="{{ ucfirst($d) }}"
+                        class="rounded-lg p-1.5 transition {{ $device === $d ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-800' }}">
+                    @svg($icon, 'h-4 w-4')
+                </button>
+            @endforeach
+        </div>
+
+        <div class="flex items-center gap-2">
+            <a href="{{ route('sites.pages.show', [$site, \App\Models\Page::find($pageId)?->slug]) }}" target="_blank"
+               class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-stone-600 hover:bg-stone-100">
+                @svg('heroicon-o-eye', 'h-4 w-4') Preview
+            </a>
+            <button wire:click="save" wire:loading.attr="disabled"
+                    class="pb-btn-primary inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-semibold disabled:opacity-60">
+                <span wire:loading.remove wire:target="save">Save</span>
+                <span wire:loading wire:target="save">Saving…</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex min-h-0 flex-1">
+        {{-- Palette --}}
+        <aside class="w-60 shrink-0 overflow-y-auto border-r border-stone-800 bg-stone-900 pb-6 text-stone-100">
+            <div class="sticky top-0 z-10 border-b border-stone-800 bg-stone-900 px-3 py-3">
+                <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Widgets</p>
+            </div>
+            @foreach ($grouped as $group => $items)
+                <p class="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-wider text-stone-500">{{ $group }}</p>
+                <div class="grid grid-cols-2 gap-1.5 px-2">
+                    @foreach ($items as $item)
+                        <button wire:click="addBlock('{{ $item['name'] }}')"
+                                class="flex flex-col items-center gap-1.5 rounded-lg border border-transparent bg-stone-800/60 px-2 py-3 text-center transition hover:border-stone-600 hover:bg-stone-800">
+                            @svg($item['icon'], 'h-5 w-5 text-stone-300')
+                            <span class="text-[11px] leading-tight text-stone-300">{{ $item['label'] }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            @endforeach
+        </aside>
+
+        {{-- Canvas --}}
+        <main class="flex-1 overflow-y-auto bg-stone-200 p-6">
+            <div class="mx-auto {{ $canvasWidth }} transition-[max-width] duration-300">
+                <div class="min-h-[60vh] overflow-hidden rounded-2xl bg-white shadow-sm">
+                    @forelse ($blocks as $i => $block)
+                        <div wire:key="block-{{ $i }}"
+                             wire:click="select({{ $i }})"
+                             class="group/blk relative cursor-pointer border-2 transition {{ $selected === $i ? 'border-amber-500' : 'border-transparent hover:border-amber-300' }}">
+                            {{-- Floating toolbar --}}
+                            <div class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg bg-stone-900/90 p-0.5 text-white opacity-0 shadow-lg transition group-hover/blk:opacity-100 {{ $selected === $i ? '!opacity-100' : '' }}">
+                                <span class="px-2 text-[11px] font-medium text-stone-300">{{ $labels[$block['type']] ?? $block['type'] }}</span>
+                                <button wire:click.stop="moveUp({{ $i }})" title="Move up" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-up', 'h-3.5 w-3.5')</button>
+                                <button wire:click.stop="moveDown({{ $i }})" title="Move down" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-down', 'h-3.5 w-3.5')</button>
+                                <button wire:click.stop="duplicate({{ $i }})" title="Duplicate" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-document-duplicate', 'h-3.5 w-3.5')</button>
+                                <button wire:click.stop="remove({{ $i }})" title="Delete" class="rounded p-1 text-red-300 hover:bg-red-500/30">@svg('heroicon-o-trash', 'h-3.5 w-3.5')</button>
+                            </div>
+                            {{-- The block, rendered with the real partials but inert --}}
+                            <div class="pointer-events-none p-4">
+                                <x-page-builder :blocks="[$block]" />
+                            </div>
+                        </div>
+                    @empty
+                        <div class="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center">
+                            @svg('heroicon-o-square-3-stack-3d', 'h-10 w-10 text-stone-300')
+                            <p class="text-stone-500">Your page is empty.</p>
+                            <p class="text-sm text-stone-400">Pick a widget from the left to start building.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+        </main>
+
+        {{-- Inspector --}}
+        <aside class="w-80 shrink-0 overflow-y-auto border-l border-stone-200 bg-white">
+            <div class="border-b border-stone-200 px-4 py-3">
+                <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Inspector</p>
+            </div>
+            @if ($selected !== null && isset($blocks[$selected]))
+                <div class="p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-base font-semibold text-stone-900">{{ $labels[$blocks[$selected]['type']] ?? $blocks[$selected]['type'] }}</h3>
+                        <span class="text-xs text-stone-400">#{{ $selected + 1 }}</span>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <button wire:click="moveUp({{ $selected }})" class="rounded-lg border border-stone-200 px-3 py-2 text-sm hover:bg-stone-50">Move up</button>
+                        <button wire:click="moveDown({{ $selected }})" class="rounded-lg border border-stone-200 px-3 py-2 text-sm hover:bg-stone-50">Move down</button>
+                        <button wire:click="duplicate({{ $selected }})" class="rounded-lg border border-stone-200 px-3 py-2 text-sm hover:bg-stone-50">Duplicate</button>
+                        <button wire:click="remove({{ $selected }})" class="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+                    </div>
+                    <p class="mt-6 rounded-lg bg-stone-50 p-3 text-xs leading-5 text-stone-500">
+                        Field editing for each widget arrives next. For now, use the form editor (Exit) to change a widget's content — your changes here are saved to the same page.
+                    </p>
+                </div>
+            @else
+                <div class="p-6 text-center text-sm text-stone-400">
+                    Select a block on the canvas to see its options.
+                </div>
+            @endif
+        </aside>
+    </div>
+
+    @script
+    <script>
+        // Friendly nudge when leaving with unsaved changes.
+        window.addEventListener('beforeunload', (e) => {
+            if ($wire.dirty) { e.preventDefault(); e.returnValue = ''; }
+        });
+        $wire.on('designer-saved', () => {});
+    </script>
+    @endscript
+</div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactFormController;
+use App\Livewire\PageDesigner;
 use App\Models\Setting;
 use App\Models\Site;
 use App\Support\CmsForgeBanner;
@@ -31,6 +32,9 @@ Route::get('/', function () {
         'siteRegistrationUrl' => $adminPanel?->getRegistrationUrl(),
     ]);
 })->name('platform.home');
+
+// Full-screen visual page designer (authorised inside the component's mount).
+Route::get('/designer/{site:slug}/{page:id}', PageDesigner::class)->name('pages.designer');
 
 Route::prefix('/sites/{site:slug}')->name('sites.')->group(function (): void {
     Route::get('/', function (Site $site) {
