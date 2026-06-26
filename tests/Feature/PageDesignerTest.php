@@ -141,6 +141,68 @@ class PageDesignerTest extends TestCase
         $this->assertNotEmpty($content[1]['data']['items']);
     }
 
+    public function test_editing_a_field_updates_the_block_and_marks_dirty(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->set('blocks.0.data.text', 'Updated heading')
+            ->assertSet('blocks.0.data.text', 'Updated heading')
+            ->assertSet('dirty', true);
+    }
+
+    public function test_inspector_renders_the_selected_blocks_fields(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('select', 0)
+            ->assertSee('Content')
+            ->assertSee('Level')   // a heading field label
+            ->assertSee('Design');
+    }
+
+    public function test_repeater_items_can_be_added_and_removed(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'feature_grid')   // selected = 1, default has 3 items
+            ->assertCount('blocks.1.data.items', 3)
+            ->call('addItem', 'items')
+            ->assertCount('blocks.1.data.items', 4)
+            ->set('blocks.1.data.items.3.title', 'Fourth feature')
+            ->assertSet('blocks.1.data.items.3.title', 'Fourth feature')
+            ->call('removeItem', 'items', 0)
+            ->assertCount('blocks.1.data.items', 3);
+    }
+
+    public function test_inline_edits_persist_on_save(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->set('blocks.0.data.text', 'Saved via inspector')
+            ->set('blocks.0.data._bg', '#101820')
+            ->call('save');
+
+        $content = $this->page->fresh()->content;
+
+        $this->assertSame('Saved via inspector', $content[0]['data']['text']);
+        $this->assertSame('#101820', $content[0]['data']['_bg']);
+    }
+
+    public function test_every_widget_has_an_inspector_schema(): void
+    {
+        foreach (\App\PageBuilder\PageBuilder::palette() as $widget) {
+            $fields = \App\PageBuilder\BlockFields::for($widget['name']);
+            $this->assertIsArray($fields, "Missing inspector schema for {$widget['name']}");
+        }
+
+        $this->assertSame('text', \App\PageBuilder\BlockFields::for('heading')[0]['key']);
+        $this->assertNotEmpty(\App\PageBuilder\BlockFields::design());
+    }
+
     public function test_users_without_access_to_the_site_are_forbidden(): void
     {
         $stranger = User::query()->create([

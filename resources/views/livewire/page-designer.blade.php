@@ -141,20 +141,46 @@
                 <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Inspector</p>
             </div>
             @if ($selected !== null && isset($blocks[$selected]))
-                <div class="p-4">
+                @php
+                    $sel = $blocks[$selected];
+                    $selData = is_array($sel['data'] ?? null) ? $sel['data'] : [];
+                    $selPath = 'blocks.' . $selected . '.data';
+                    $contentFields = \App\PageBuilder\BlockFields::for($sel['type']);
+                @endphp
+                <div wire:key="inspector-{{ $selected }}-{{ $sel['type'] }}" class="p-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-base font-semibold text-stone-900">{{ $labels[$blocks[$selected]['type']] ?? $blocks[$selected]['type'] }}</h3>
+                        <h3 class="text-base font-semibold text-stone-900">{{ $labels[$sel['type']] ?? $sel['type'] }}</h3>
                         <span class="text-xs text-stone-400">#{{ $selected + 1 }}</span>
                     </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2">
-                        <button wire:click="moveUp({{ $selected }})" class="rounded-lg border border-stone-200 px-3 py-2 text-sm hover:bg-stone-50">Move up</button>
-                        <button wire:click="moveDown({{ $selected }})" class="rounded-lg border border-stone-200 px-3 py-2 text-sm hover:bg-stone-50">Move down</button>
-                        <button wire:click="duplicate({{ $selected }})" class="rounded-lg border border-stone-200 px-3 py-2 text-sm hover:bg-stone-50">Duplicate</button>
-                        <button wire:click="remove({{ $selected }})" class="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+                    <div class="mt-3 grid grid-cols-4 gap-1.5">
+                        <button wire:click="moveUp({{ $selected }})" title="Move up" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-chevron-up', 'mx-auto h-4 w-4')</button>
+                        <button wire:click="moveDown({{ $selected }})" title="Move down" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-chevron-down', 'mx-auto h-4 w-4')</button>
+                        <button wire:click="duplicate({{ $selected }})" title="Duplicate" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-document-duplicate', 'mx-auto h-4 w-4')</button>
+                        <button wire:click="remove({{ $selected }})" title="Delete" class="rounded-lg border border-red-200 py-2 text-red-600 hover:bg-red-50">@svg('heroicon-o-trash', 'mx-auto h-4 w-4')</button>
                     </div>
-                    <p class="mt-6 rounded-lg bg-stone-50 p-3 text-xs leading-5 text-stone-500">
-                        Field editing for each widget arrives next. For now, use the form editor (Exit) to change a widget's content — your changes here are saved to the same page.
-                    </p>
+
+                    {{-- Content fields --}}
+                    @if (! empty($contentFields))
+                        <div class="mt-5 space-y-3">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Content</p>
+                            @foreach ($contentFields as $field)
+                                @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
+                            @endforeach
+                        </div>
+                    @endif
+
+                    {{-- Design fields (collapsible) --}}
+                    <div x-data="{ open: false }" class="mt-5 border-t border-stone-200 pt-4">
+                        <button type="button" x-on:click="open = !open" class="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wider text-stone-400 hover:text-stone-600">
+                            <span>Design</span>
+                            <span x-text="open ? '–' : '+'"></span>
+                        </button>
+                        <div x-show="open" x-cloak class="mt-3 space-y-3">
+                            @foreach (\App\PageBuilder\BlockFields::design() as $field)
+                                @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
             @else
                 <div class="p-6 text-center text-sm text-stone-400">

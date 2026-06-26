@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Page;
 use App\Models\Site;
+use App\PageBuilder\BlockFields;
 use App\PageBuilder\PageBuilder;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -45,6 +46,45 @@ class PageDesigner extends Component
     public function select(int $index): void
     {
         $this->selected = isset($this->blocks[$index]) ? $index : null;
+    }
+
+    /**
+     * Any inline edit to a block's data (via wire:model) marks the page dirty.
+     */
+    public function updated(string $name): void
+    {
+        if (str_starts_with($name, 'blocks.')) {
+            $this->dirty = true;
+        }
+    }
+
+    public function addItem(string $key): void
+    {
+        if ($this->selected === null || ! isset($this->blocks[$this->selected])) {
+            return;
+        }
+
+        $items = $this->blocks[$this->selected]['data'][$key] ?? [];
+        $items[] = [];
+        $this->blocks[$this->selected]['data'][$key] = array_values($items);
+        $this->dirty = true;
+    }
+
+    public function removeItem(string $key, int $index): void
+    {
+        if ($this->selected === null) {
+            return;
+        }
+
+        $items = $this->blocks[$this->selected]['data'][$key] ?? [];
+
+        if (! isset($items[$index])) {
+            return;
+        }
+
+        array_splice($items, $index, 1);
+        $this->blocks[$this->selected]['data'][$key] = array_values($items);
+        $this->dirty = true;
     }
 
     public function addBlock(string $name): void
