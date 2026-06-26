@@ -72,6 +72,19 @@ class PageBuilderDesignTest extends TestCase
         $this->assertStringContainsString('margin-left: auto; margin-right: auto', $html);
     }
 
+    public function test_per_device_sizing_emits_scoped_media_queries(): void
+    {
+        $html = $this->renderPageWith(['_w_tablet' => '70%', '_w_mobile' => '100%', '_align_mobile' => 'center']);
+
+        $this->assertStringContainsString('@media(max-width:1023px)', $html);
+        $this->assertStringContainsString('width:70%', $html);
+        $this->assertStringContainsString('@media(max-width:767px)', $html);
+        $this->assertStringContainsString('width:100%', $html);
+        $this->assertStringContainsString('text-align:center', $html);
+        // Scoped to a unique element class, not global.
+        $this->assertMatchesRegularExpression('/\.pb-el-[A-Za-z0-9]{8}\{/', $html);
+    }
+
     public function test_offset_and_layer_controls_render(): void
     {
         $html = $this->renderPageWith(['_offset_x' => '20px', '_offset_y' => '-40px', '_z' => '5']);

@@ -148,6 +148,29 @@
                 default => '',
             };
 
+            // Per-device overrides need real media queries, so emit a tiny scoped
+            // <style> targeting a unique class on this element. Tablet ≤1023px,
+            // mobile ≤767px.
+            $wTablet = trim((string) ($data['_w_tablet'] ?? ''));
+            $wMobile = trim((string) ($data['_w_mobile'] ?? ''));
+            $alignMobile = $data['_align_mobile'] ?? '';
+            $responsiveStyle = '';
+            $rules = '';
+            if ($wTablet !== '') {
+                $rules .= "@media(max-width:1023px){.{cls}{width:{$wTablet};max-width:100%}}";
+            }
+            if ($wMobile !== '') {
+                $rules .= "@media(max-width:767px){.{cls}{width:{$wMobile};max-width:100%}}";
+            }
+            if (in_array($alignMobile, ['left', 'center', 'right'], true)) {
+                $rules .= "@media(max-width:767px){.{cls}{text-align:{$alignMobile}}}";
+            }
+            if ($rules !== '') {
+                $elClass = 'pb-el-' . \Illuminate\Support\Str::random(8);
+                $boxClasses[] = $elClass;
+                $responsiveStyle = '<style>' . str_replace('{cls}', $elClass, $rules) . '</style>';
+            }
+
             $boxClass = trim(preg_replace('/\s+/', ' ', implode(' ', array_filter($boxClasses))));
             $wrapClass = trim(implode(' ', array_filter($wrapClasses)));
             $styleAttr = implode('; ', $styles);
@@ -156,6 +179,7 @@
         @if ($type && view()->exists('page-builder.blocks.' . $type))
             @if ($hasBox || $wrapClass !== '')
                 <div @class([$wrapClass => $wrapClass !== ''])>
+                    {!! $responsiveStyle !!}
                     <div class="{{ $boxClass }}" @if ($styleAttr !== '') style="{{ $styleAttr }}" @endif>
                         <div class="{{ $widthClass }}">
                             @include('page-builder.blocks.' . $type, $data + ['__page' => $page])

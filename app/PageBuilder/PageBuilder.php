@@ -307,6 +307,10 @@ class PageBuilder
                         Select::make('_align')->label('Text alignment')->options(self::alignOptions())->placeholder('Inherit'),
                         TextInput::make('_w')->label('Width')->placeholder('e.g. 480px or 60%')
                             ->helperText('Caps to 100% on small screens.'),
+                        TextInput::make('_w_tablet')->label('Width on tablet')->placeholder('e.g. 70%'),
+                        TextInput::make('_w_mobile')->label('Width on mobile')->placeholder('e.g. 100%'),
+                        Select::make('_align_mobile')->label('Text alignment on mobile')
+                            ->options(self::alignOptions())->placeholder('Same as desktop'),
                         TextInput::make('_minh')->label('Min height')->placeholder('e.g. 320px'),
                         Select::make('_self')->label('Box alignment')
                             ->options(['left' => 'Left', 'center' => 'Center', 'right' => 'Right'])

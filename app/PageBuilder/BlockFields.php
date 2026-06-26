@@ -31,6 +31,9 @@ class BlockFields
 
         return [
             ['key' => '_w', 'label' => 'Width (e.g. 480px or 60%)', 'type' => 'text'],
+            ['key' => '_w_tablet', 'label' => 'Width on tablet', 'type' => 'text'],
+            ['key' => '_w_mobile', 'label' => 'Width on mobile', 'type' => 'text'],
+            ['key' => '_align_mobile', 'label' => 'Text alignment on mobile', 'type' => 'select', 'options' => ['' => 'Same as desktop', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
             ['key' => '_minh', 'label' => 'Min height (e.g. 320px)', 'type' => 'text'],
             ['key' => '_self', 'label' => 'Box alignment', 'type' => 'select', 'options' => ['' => 'Default', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
             ['key' => '_offset_x', 'label' => 'Nudge right / left (e.g. 20px, -30px)', 'type' => 'text'],
