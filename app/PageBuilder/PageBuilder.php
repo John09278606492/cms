@@ -305,6 +305,12 @@ class PageBuilder
                             ->options(['default' => 'Default', 'narrow' => 'Narrow', 'wide' => 'Wide', 'full' => 'Full width'])
                             ->default('default'),
                         Select::make('_align')->label('Text alignment')->options(self::alignOptions())->placeholder('Inherit'),
+                        TextInput::make('_w')->label('Width')->placeholder('e.g. 480px or 60%')
+                            ->helperText('Caps to 100% on small screens.'),
+                        TextInput::make('_minh')->label('Min height')->placeholder('e.g. 320px'),
+                        Select::make('_self')->label('Box alignment')
+                            ->options(['left' => 'Left', 'center' => 'Center', 'right' => 'Right'])
+                            ->placeholder('Default'),
                     ]),
                 Fieldset::make('Typography')
                     ->columns(3)

@@ -30,6 +30,9 @@ class BlockFields
         $space = ['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large'];
 
         return [
+            ['key' => '_w', 'label' => 'Width (e.g. 480px or 60%)', 'type' => 'text'],
+            ['key' => '_minh', 'label' => 'Min height (e.g. 320px)', 'type' => 'text'],
+            ['key' => '_self', 'label' => 'Box alignment', 'type' => 'select', 'options' => ['' => 'Default', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
             ['key' => '_bg', 'label' => 'Background colour', 'type' => 'color'],
             ['key' => '_grad_to', 'label' => 'Gradient to', 'type' => 'color'],
             ['key' => '_text_color', 'label' => 'Text colour', 'type' => 'color'],

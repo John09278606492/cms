@@ -81,6 +81,28 @@
                 $styles[] = "border: {$borderWidth}px solid {$borderColor}";
             }
 
+            // Size controls. Width always gets max-width:100% so a fixed px width
+            // still shrinks to fit small screens rather than overflowing.
+            $sizeW = trim((string) ($data['_w'] ?? ''));
+            $sizeMinH = trim((string) ($data['_minh'] ?? ''));
+            $sizeSelf = $data['_self'] ?? null;
+            if ($sizeW !== '') {
+                $styles[] = "width: {$sizeW}";
+                $styles[] = 'max-width: 100%';
+                $margin = match ($sizeSelf) {
+                    'center' => 'margin-left: auto; margin-right: auto',
+                    'right' => 'margin-left: auto',
+                    'left' => 'margin-right: auto',
+                    default => '',
+                };
+                if ($margin !== '') {
+                    $styles[] = $margin;
+                }
+            }
+            if ($sizeMinH !== '') {
+                $styles[] = "min-height: {$sizeMinH}";
+            }
+
             $anim = $data['_anim'] ?? 'none';
             $hideMobile = ! empty($data['_hide_mobile']);
             $hideTablet = ! empty($data['_hide_tablet']);

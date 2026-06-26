@@ -62,6 +62,16 @@ class PageBuilderDesignTest extends TestCase
         $this->assertStringContainsString('mb-24', $html);
     }
 
+    public function test_size_controls_render_with_a_mobile_safe_width(): void
+    {
+        $html = $this->renderPageWith(['_w' => '480px', '_minh' => '320px', '_self' => 'center']);
+
+        $this->assertStringContainsString('width: 480px', $html);
+        $this->assertStringContainsString('max-width: 100%', $html);   // never overflows small screens
+        $this->assertStringContainsString('min-height: 320px', $html);
+        $this->assertStringContainsString('margin-left: auto; margin-right: auto', $html);
+    }
+
     public function test_text_colour_overrides_descendant_block_colours(): void
     {
         $html = $this->renderPageWith(['_text_color' => '#ffffff']);
