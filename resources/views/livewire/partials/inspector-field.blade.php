@@ -43,7 +43,32 @@
                 @break
 
             @case('image')
-                <p class="rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-500">Images are set in the form editor (Exit). They render on the canvas once saved.</p>
+                @php
+                    $imgVal = $data[$field['key']] ?? null;
+                    $multiple = $field['multiple'] ?? false;
+                    $current = $multiple ? (is_array($imgVal) ? $imgVal : []) : (filled($imgVal) ? [$imgVal] : []);
+                @endphp
+                <div wire:key="img-{{ $field['key'] }}">
+                    @if (! empty($current))
+                        <div class="mb-2 flex flex-wrap gap-2">
+                            @foreach ($current as $ci => $imgPath)
+                                <div class="relative">
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($imgPath) }}" alt="" class="h-14 w-14 rounded-lg border border-stone-200 object-cover">
+                                    @if ($multiple)
+                                        <button type="button" wire:click="removeImageAt('{{ $field['key'] }}', {{ $ci }})" class="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-xs text-white hover:bg-red-600">&times;</button>
+                                    @else
+                                        <button type="button" wire:click="clearImage('{{ $field['key'] }}')" class="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-stone-900 text-xs text-white hover:bg-red-600">&times;</button>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                    <label class="flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-dashed border-stone-300 px-3 py-2 text-xs font-medium text-stone-600 hover:border-stone-400 hover:bg-stone-50">
+                        <span wire:loading.remove wire:target="pendingUploads.{{ $field['key'] }}">Upload image{{ $multiple ? 's' : '' }}</span>
+                        <span wire:loading wire:target="pendingUploads.{{ $field['key'] }}">Uploading…</span>
+                        <input type="file" accept="image/*" @if ($multiple) multiple @endif wire:model="pendingUploads.{{ $field['key'] }}" class="hidden">
+                    </label>
+                </div>
                 @break
 
             @case('repeater')

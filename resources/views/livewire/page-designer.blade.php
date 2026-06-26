@@ -33,6 +33,8 @@
             <span class="text-sm font-semibold text-stone-900">{{ $pageTitle }}</span>
             @if ($dirty)
                 <span class="inline-flex items-center gap-1 text-xs text-amber-600"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Unsaved</span>
+            @else
+                <span class="inline-flex items-center gap-1 text-xs text-stone-400">@svg('heroicon-o-check', 'h-3.5 w-3.5') Saved</span>
             @endif
         </div>
 
@@ -248,11 +250,15 @@
 
     @script
     <script>
+        // Autosave every 20s while there are unsaved changes.
+        setInterval(() => {
+            if ($wire.dirty) { $wire.save(); }
+        }, 20000);
+
         // Friendly nudge when leaving with unsaved changes.
         window.addEventListener('beforeunload', (e) => {
             if ($wire.dirty) { e.preventDefault(); e.returnValue = ''; }
         });
-        $wire.on('designer-saved', () => {});
     </script>
     @endscript
 </div>

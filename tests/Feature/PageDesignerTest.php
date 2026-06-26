@@ -8,6 +8,8 @@ use App\Models\Page;
 use App\Models\Site;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -249,6 +251,44 @@ class PageDesignerTest extends TestCase
             ->assertCount('blocks.1.data.columns', 3)
             ->call('removeColumn', '1', 2)
             ->assertCount('blocks.1.data.columns', 2);
+    }
+
+    public function test_an_image_can_be_uploaded_to_a_widget(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->owner);
+
+        $component = Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'image')   // selectedPath '1'
+            ->set('pendingUploads.image', UploadedFile::fake()->image('photo.jpg'));
+
+        $path = $component->get('blocks.1.data.image');
+
+        $this->assertNotEmpty($path);
+        Storage::disk('public')->assertExists($path);
+        $component->assertSet('dirty', true);
+
+        // Clearing removes it.
+        $component->call('clearImage', 'image')
+            ->assertSet('blocks.1.data.image', null);
+    }
+
+    public function test_multiple_images_append_to_a_gallery_and_can_be_removed(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->owner);
+
+        $component = Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'gallery')   // selectedPath '1'
+            ->set('pendingUploads.images', [
+                UploadedFile::fake()->image('a.jpg'),
+                UploadedFile::fake()->image('b.jpg'),
+            ]);
+
+        $this->assertCount(2, $component->get('blocks.1.data.images'));
+
+        $component->call('removeImageAt', 'images', 0);
+        $this->assertCount(1, $component->get('blocks.1.data.images'));
     }
 
     public function test_users_without_access_to_the_site_are_forbidden(): void

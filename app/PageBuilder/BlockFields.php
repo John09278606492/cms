@@ -167,7 +167,7 @@ class BlockFields
             ],
             'logo_cloud' => [
                 ['key' => 'heading', 'label' => 'Heading', 'type' => 'text'],
-                ['key' => 'logos', 'label' => 'Logos', 'type' => 'image'],
+                ['key' => 'logos', 'label' => 'Logos', 'type' => 'image', 'multiple' => true],
                 ['key' => 'grayscale', 'label' => 'Greyscale', 'type' => 'toggle'],
             ],
             'tabs' => [
@@ -233,7 +233,7 @@ class BlockFields
                 ['key' => 'columns', 'label' => 'Columns', 'type' => 'select', 'options' => self::cols()],
             ],
             'carousel' => [
-                ['key' => 'images', 'label' => 'Images', 'type' => 'image'],
+                ['key' => 'images', 'label' => 'Images', 'type' => 'image', 'multiple' => true],
                 ['key' => 'autoplay', 'label' => 'Autoplay', 'type' => 'toggle'],
                 ['key' => 'interval', 'label' => 'Autoplay speed', 'type' => 'select', 'options' => ['3000' => '3 seconds', '5000' => '5 seconds', '8000' => '8 seconds']],
                 ['key' => 'ratio', 'label' => 'Aspect ratio', 'type' => 'select', 'options' => ['video' => '16 : 9', 'wide' => '21 : 9', 'square' => '1 : 1']],
@@ -249,7 +249,7 @@ class BlockFields
                 ['key' => 'zoom', 'label' => 'Zoom', 'type' => 'select', 'options' => ['10' => 'City', '13' => 'District', '16' => 'Street']],
             ],
             'gallery' => [
-                ['key' => 'images', 'label' => 'Images', 'type' => 'image'],
+                ['key' => 'images', 'label' => 'Images', 'type' => 'image', 'multiple' => true],
                 ['key' => 'columns', 'label' => 'Columns', 'type' => 'select', 'options' => self::cols()],
             ],
             'video' => [

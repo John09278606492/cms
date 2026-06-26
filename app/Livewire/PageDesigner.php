@@ -8,6 +8,7 @@ use App\PageBuilder\BlockFields;
 use App\PageBuilder\PageBuilder;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * A full-screen, Elementor-style visual designer. It edits the very same
@@ -17,6 +18,8 @@ use Livewire\Component;
 #[Layout('layouts.designer')]
 class PageDesigner extends Component
 {
+    use WithFileUploads;
+
     public Site $site;
 
     public int $pageId;
@@ -35,6 +38,14 @@ class PageDesigner extends Component
     public string $device = 'desktop';
 
     public bool $dirty = false;
+
+    /**
+     * Temporary image uploads, keyed by the field key of the selected block
+     * (e.g. 'image', 'avatar', 'logos'). Stored to the public disk on upload.
+     *
+     * @var array<string, mixed>
+     */
+    public array $pendingUploads = [];
 
     public function mount(Site $site, Page $page): void
     {
@@ -272,6 +283,73 @@ class PageDesigner extends Component
 
         array_splice($columns, $column, 1);
         data_set($this->blocks, $path . '.data.columns', array_values($columns));
+        $this->dirty = true;
+    }
+
+    // --- Image uploads ------------------------------------------------------
+
+    /**
+     * Fired when an image is dropped on a field. $key is the field key of the
+     * currently selected block (single or multiple). Stores to the public disk
+     * and writes the path into the block's data.
+     */
+    public function updatedPendingUploads(mixed $value, string $key): void
+    {
+        if ($this->selectedPath === null || ($block = $this->blockAt($this->selectedPath)) === null) {
+            return;
+        }
+
+        $field = collect(BlockFields::for($block['type']))->firstWhere('key', $key);
+        $multiple = (bool) ($field['multiple'] ?? false);
+        $path = $this->selectedPath . '.data.' . $key;
+
+        $stored = [];
+        foreach (is_array($value) ? $value : [$value] as $file) {
+            if ($file) {
+                $stored[] = $file->store('page-builder', 'public');
+            }
+        }
+
+        if ($stored !== []) {
+            if ($multiple) {
+                $existing = data_get($this->blocks, $path, []);
+                $existing = is_array($existing) ? $existing : [];
+                data_set($this->blocks, $path, array_values([...$existing, ...$stored]));
+            } else {
+                data_set($this->blocks, $path, $stored[0]);
+            }
+
+            $this->dirty = true;
+        }
+
+        unset($this->pendingUploads[$key]);
+    }
+
+    public function clearImage(string $key): void
+    {
+        if ($this->selectedPath === null) {
+            return;
+        }
+
+        data_set($this->blocks, $this->selectedPath . '.data.' . $key, null);
+        $this->dirty = true;
+    }
+
+    public function removeImageAt(string $key, int $index): void
+    {
+        if ($this->selectedPath === null) {
+            return;
+        }
+
+        $path = $this->selectedPath . '.data.' . $key;
+        $images = data_get($this->blocks, $path, []);
+
+        if (! is_array($images) || ! isset($images[$index])) {
+            return;
+        }
+
+        array_splice($images, $index, 1);
+        data_set($this->blocks, $path, array_values($images));
         $this->dirty = true;
     }
 
