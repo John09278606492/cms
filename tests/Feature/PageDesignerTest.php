@@ -241,6 +241,15 @@ class PageDesignerTest extends TestCase
         $this->assertSame('Buy now', $saved[1]['data']['columns'][0]['blocks'][0]['data']['label']);
     }
 
+    public function test_empty_container_shows_a_canvas_drop_area(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'container')
+            ->assertSee('Drag widgets here');
+    }
+
     public function test_a_container_holds_and_edits_child_widgets(): void
     {
         $this->actingAs($this->owner);

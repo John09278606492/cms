@@ -13,6 +13,7 @@
     dragName: null,
     dragFrom: null,
     overIndex: null,
+    overContainer: null,
     handleDrop(target) {
         if (this.dragType === 'add' && this.dragName) {
             $wire.insertAt(this.dragName, target);
@@ -22,7 +23,13 @@
         }
         this.reset();
     },
-    reset() { this.dragType = null; this.dragName = null; this.dragFrom = null; this.overIndex = null; },
+    dropInto(listPath) {
+        if (this.dragType === 'add' && this.dragName) {
+            $wire.addInto(listPath, this.dragName);
+        }
+        this.reset();
+    },
+    reset() { this.dragType = null; this.dragName = null; this.dragFrom = null; this.overIndex = null; this.overContainer = null; },
 }">
     {{-- Top bar --}}
     <header class="flex items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 py-2.5">
@@ -109,10 +116,30 @@
                                 <button wire:click.stop="duplicate('{{ $i }}')" title="Duplicate" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-document-duplicate', 'h-3.5 w-3.5')</button>
                                 <button wire:click.stop="remove('{{ $i }}')" title="Delete" class="rounded p-1 text-red-300 hover:bg-red-500/30">@svg('heroicon-o-trash', 'h-3.5 w-3.5')</button>
                             </div>
-                            {{-- The block, rendered with the real partials but inert --}}
-                            <div class="pointer-events-none p-4">
-                                <x-page-builder :blocks="[$block]" />
-                            </div>
+                            @if ($block['type'] === 'container')
+                                {{-- Containers are live drop targets: drag widgets straight in. --}}
+                                @php $kids = is_array($block['data']['blocks'] ?? null) ? $block['data']['blocks'] : []; @endphp
+                                <div class="m-3 rounded-xl border-2 border-dashed p-2 transition"
+                                     x-on:dragover.prevent.stop="overContainer = '{{ $i }}'"
+                                     x-on:drop.prevent.stop="dropInto('{{ $i }}.data.blocks')"
+                                     :class="overContainer === '{{ $i }}' && dragType === 'add' ? 'border-amber-400 bg-amber-50' : 'border-stone-200'">
+                                    @if (empty($kids))
+                                        <div class="flex min-h-[110px] flex-col items-center justify-center gap-1 text-center text-xs text-stone-400">
+                                            @svg('heroicon-o-plus-circle', 'h-6 w-6')
+                                            <span>Drag widgets here</span>
+                                        </div>
+                                    @else
+                                        <div class="pointer-events-none">
+                                            <x-page-builder :blocks="$kids" />
+                                        </div>
+                                    @endif
+                                </div>
+                            @else
+                                {{-- The block, rendered with the real partials but inert --}}
+                                <div class="pointer-events-none p-4">
+                                    <x-page-builder :blocks="[$block]" />
+                                </div>
+                            @endif
                         </div>
                     @empty
                         <div class="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center"
