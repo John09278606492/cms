@@ -26,7 +26,11 @@ class PageDesigner extends Component
     /** @var array<int, array{type: string, data: array<string, mixed>}> */
     public array $blocks = [];
 
-    public ?int $selected = null;
+    /**
+     * Dot-path of the selected block: "3" for a top-level block, or a nested
+     * path like "3.data.columns.0.blocks.1" for a widget inside a container.
+     */
+    public ?string $selectedPath = null;
 
     public string $device = 'desktop';
 
@@ -43,14 +47,68 @@ class PageDesigner extends Component
         $this->blocks = is_array($page->content) ? array_values($page->content) : [];
     }
 
-    public function select(int $index): void
+    // --- Path helpers ------------------------------------------------------
+
+    /** The block (array) at a dot-path, or null. */
+    public function blockAt(?string $path): ?array
     {
-        $this->selected = isset($this->blocks[$index]) ? $index : null;
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        $block = data_get($this->blocks, $path);
+
+        return is_array($block) && isset($block['type']) ? $block : null;
     }
 
-    /**
-     * Any inline edit to a block's data (via wire:model) marks the page dirty.
-     */
+    /** Split a block path into [listPath, index]. listPath '' means top level. */
+    protected function splitPath(string $path): array
+    {
+        $pos = strrpos($path, '.');
+
+        return $pos === false
+            ? ['', (int) $path]
+            : [substr($path, 0, $pos), (int) substr($path, $pos + 1)];
+    }
+
+    /** @return array<int, mixed> the list of blocks at a list-path. */
+    protected function getList(string $listPath): array
+    {
+        if ($listPath === '') {
+            return $this->blocks;
+        }
+
+        $list = data_get($this->blocks, $listPath);
+
+        return is_array($list) ? array_values($list) : [];
+    }
+
+    protected function putList(string $listPath, array $list): void
+    {
+        $list = array_values($list);
+
+        if ($listPath === '') {
+            $this->blocks = $list;
+        } else {
+            data_set($this->blocks, $listPath, $list);
+        }
+
+        $this->dirty = true;
+    }
+
+    protected function pathInList(string $listPath, int $index): string
+    {
+        return $listPath === '' ? (string) $index : $listPath . '.' . $index;
+    }
+
+    // --- Selection & inline edits -----------------------------------------
+
+    public function select(string $path): void
+    {
+        $this->selectedPath = $this->blockAt($path) !== null ? $path : null;
+    }
+
+    /** Any inline edit to a block's data (via wire:model) marks the page dirty. */
     public function updated(string $name): void
     {
         if (str_starts_with($name, 'blocks.')) {
@@ -58,99 +116,162 @@ class PageDesigner extends Component
         }
     }
 
+    /** Add/remove rows inside a repeater field of the selected block. */
     public function addItem(string $key): void
     {
-        if ($this->selected === null || ! isset($this->blocks[$this->selected])) {
+        if ($this->selectedPath === null) {
             return;
         }
 
-        $items = $this->blocks[$this->selected]['data'][$key] ?? [];
+        $path = $this->selectedPath . '.data.' . $key;
+        $items = data_get($this->blocks, $path, []);
+        $items = is_array($items) ? array_values($items) : [];
         $items[] = [];
-        $this->blocks[$this->selected]['data'][$key] = array_values($items);
+
+        data_set($this->blocks, $path, $items);
         $this->dirty = true;
     }
 
     public function removeItem(string $key, int $index): void
     {
-        if ($this->selected === null) {
+        if ($this->selectedPath === null) {
             return;
         }
 
-        $items = $this->blocks[$this->selected]['data'][$key] ?? [];
+        $path = $this->selectedPath . '.data.' . $key;
+        $items = data_get($this->blocks, $path, []);
 
-        if (! isset($items[$index])) {
+        if (! is_array($items) || ! isset($items[$index])) {
             return;
         }
 
         array_splice($items, $index, 1);
-        $this->blocks[$this->selected]['data'][$key] = array_values($items);
+        data_set($this->blocks, $path, array_values($items));
         $this->dirty = true;
     }
+
+    // --- Block operations (work at any nesting level) ----------------------
 
     public function addBlock(string $name): void
     {
         $this->blocks[] = ['type' => $name, 'data' => PageBuilder::defaultData($name)];
-        $this->selected = array_key_last($this->blocks);
+        $this->selectedPath = (string) array_key_last($this->blocks);
         $this->dirty = true;
     }
 
+    /** Insert a new widget into a list (top level, or a container's child list). */
+    public function insertInto(string $listPath, string $name, int $index): void
+    {
+        $list = $this->getList($listPath);
+        $index = max(0, min($index, count($list)));
+
+        array_splice($list, $index, 0, [['type' => $name, 'data' => PageBuilder::defaultData($name)]]);
+        $this->putList($listPath, $list);
+        $this->selectedPath = $this->pathInList($listPath, $index);
+    }
+
+    public function addInto(string $listPath, string $name): void
+    {
+        $this->insertInto($listPath, $name, count($this->getList($listPath)));
+    }
+
+    /** Top-level insert used by palette drag-and-drop. */
     public function insertAt(string $name, int $index): void
     {
-        $index = max(0, min($index, count($this->blocks)));
-        $block = ['type' => $name, 'data' => PageBuilder::defaultData($name)];
-
-        array_splice($this->blocks, $index, 0, [$block]);
-        $this->selected = $index;
-        $this->dirty = true;
+        $this->insertInto('', $name, $index);
     }
 
+    public function moveBlock(string $listPath, int $from, int $to): void
+    {
+        $list = $this->getList($listPath);
+
+        if (! isset($list[$from]) || $to < 0 || $to >= count($list)) {
+            return;
+        }
+
+        $item = array_splice($list, $from, 1)[0];
+        array_splice($list, $to, 0, [$item]);
+
+        $this->putList($listPath, $list);
+        $this->selectedPath = $this->pathInList($listPath, $to);
+    }
+
+    /** Top-level reorder used by canvas drag-and-drop. */
     public function move(int $from, int $to): void
     {
-        if (! isset($this->blocks[$from]) || $to < 0 || $to >= count($this->blocks)) {
+        $this->moveBlock('', $from, $to);
+    }
+
+    public function moveUp(string $path): void
+    {
+        [$listPath, $index] = $this->splitPath($path);
+        $this->moveBlock($listPath, $index, $index - 1);
+    }
+
+    public function moveDown(string $path): void
+    {
+        [$listPath, $index] = $this->splitPath($path);
+        $this->moveBlock($listPath, $index, $index + 1);
+    }
+
+    public function duplicate(string $path): void
+    {
+        [$listPath, $index] = $this->splitPath($path);
+        $list = $this->getList($listPath);
+
+        if (! isset($list[$index])) {
             return;
         }
 
-        $blocks = $this->blocks;
-        $item = array_splice($blocks, $from, 1)[0];
-        array_splice($blocks, $to, 0, [$item]);
+        array_splice($list, $index + 1, 0, [$list[$index]]);
+        $this->putList($listPath, $list);
+        $this->selectedPath = $this->pathInList($listPath, $index + 1);
+    }
 
-        $this->blocks = $blocks;
-        $this->selected = $to;
+    public function remove(string $path): void
+    {
+        [$listPath, $index] = $this->splitPath($path);
+        $list = $this->getList($listPath);
+
+        if (! isset($list[$index])) {
+            return;
+        }
+
+        array_splice($list, $index, 1);
+        $this->putList($listPath, $list);
+        $this->selectedPath = null;
+    }
+
+    // --- Columns container --------------------------------------------------
+
+    public function addColumn(string $path): void
+    {
+        if (($block = $this->blockAt($path)) === null || $block['type'] !== 'columns') {
+            return;
+        }
+
+        $columns = data_get($this->blocks, $path . '.data.columns', []);
+        $columns = is_array($columns) ? array_values($columns) : [];
+
+        if (count($columns) >= 4) {
+            return;
+        }
+
+        $columns[] = ['blocks' => []];
+        data_set($this->blocks, $path . '.data.columns', $columns);
         $this->dirty = true;
     }
 
-    public function moveUp(int $index): void
+    public function removeColumn(string $path, int $column): void
     {
-        $this->move($index, $index - 1);
-    }
+        $columns = data_get($this->blocks, $path . '.data.columns', []);
 
-    public function moveDown(int $index): void
-    {
-        $this->move($index, $index + 1);
-    }
-
-    public function duplicate(int $index): void
-    {
-        if (! isset($this->blocks[$index])) {
+        if (! is_array($columns) || ! isset($columns[$column]) || count($columns) <= 1) {
             return;
         }
 
-        $blocks = $this->blocks;
-        array_splice($blocks, $index + 1, 0, [$this->blocks[$index]]);
-
-        $this->blocks = $blocks;
-        $this->selected = $index + 1;
-        $this->dirty = true;
-    }
-
-    public function remove(int $index): void
-    {
-        if (! isset($this->blocks[$index])) {
-            return;
-        }
-
-        array_splice($this->blocks, $index, 1);
-        $this->selected = null;
+        array_splice($columns, $column, 1);
+        data_set($this->blocks, $path . '.data.columns', array_values($columns));
         $this->dirty = true;
     }
 

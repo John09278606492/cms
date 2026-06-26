@@ -67,7 +67,7 @@ class PageDesignerTest extends TestCase
         Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
             ->call('addBlock', 'button')
             ->assertCount('blocks', 2)
-            ->assertSet('selected', 1)
+            ->assertSet('selectedPath', '1')
             ->assertSet('dirty', true)
             ->assertSet('blocks.1.type', 'button')
             ->assertSet('blocks.1.data.label', 'Click me');
@@ -82,7 +82,7 @@ class PageDesignerTest extends TestCase
             ->assertCount('blocks', 2)
             ->assertSet('blocks.0.type', 'button')
             ->assertSet('blocks.1.type', 'heading')
-            ->assertSet('selected', 0)
+            ->assertSet('selectedPath', '0')
             ->assertSet('dirty', true);
     }
 
@@ -114,12 +114,12 @@ class PageDesignerTest extends TestCase
 
         Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
             ->call('addBlock', 'button')   // index 1
-            ->call('moveUp', 1)            // button now index 0
+            ->call('moveUp', '1')          // button now index 0
             ->assertSet('blocks.0.type', 'button')
             ->assertSet('blocks.1.type', 'heading')
-            ->call('duplicate', 0)
+            ->call('duplicate', '0')
             ->assertCount('blocks', 3)
-            ->call('remove', 0)
+            ->call('remove', '0')
             ->assertCount('blocks', 2);
     }
 
@@ -156,7 +156,7 @@ class PageDesignerTest extends TestCase
         $this->actingAs($this->owner);
 
         Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
-            ->call('select', 0)
+            ->call('select', '0')
             ->assertSee('Content')
             ->assertSee('Level')   // a heading field label
             ->assertSee('Design');
@@ -201,6 +201,54 @@ class PageDesignerTest extends TestCase
 
         $this->assertSame('text', \App\PageBuilder\BlockFields::for('heading')[0]['key']);
         $this->assertNotEmpty(\App\PageBuilder\BlockFields::design());
+    }
+
+    public function test_a_widget_can_be_nested_inside_a_column_and_edited(): void
+    {
+        $this->actingAs($this->owner);
+
+        $component = Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'columns')   // becomes block index 1, default 2 columns
+            ->assertSet('selectedPath', '1');
+
+        // Drop a button into the first column.
+        $component->call('addInto', '1.data.columns.0.blocks', 'button')
+            ->assertSet('selectedPath', '1.data.columns.0.blocks.0')
+            ->assertSet('blocks.1.data.columns.0.blocks.0.type', 'button')
+            ->assertSet('blocks.1.data.columns.0.blocks.0.data.label', 'Click me');
+
+        // Edit the nested button's label via its deep path.
+        $component->set('blocks.1.data.columns.0.blocks.0.data.label', 'Buy now')
+            ->assertSet('blocks.1.data.columns.0.blocks.0.data.label', 'Buy now')
+            ->assertSet('dirty', true);
+
+        // Persisted, the nesting survives the round-trip.
+        $component->call('save');
+        $saved = $this->page->fresh()->content;
+        $this->assertSame('button', $saved[1]['data']['columns'][0]['blocks'][0]['type']);
+        $this->assertSame('Buy now', $saved[1]['data']['columns'][0]['blocks'][0]['data']['label']);
+    }
+
+    public function test_nested_widgets_and_columns_can_be_removed(): void
+    {
+        $this->actingAs($this->owner);
+
+        $component = Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'columns')
+            ->call('addInto', '1.data.columns.0.blocks', 'heading')
+            ->call('addInto', '1.data.columns.0.blocks', 'button')
+            ->assertCount('blocks.1.data.columns.0.blocks', 2);
+
+        // Remove the first nested widget.
+        $component->call('remove', '1.data.columns.0.blocks.0')
+            ->assertCount('blocks.1.data.columns.0.blocks', 1)
+            ->assertSet('blocks.1.data.columns.0.blocks.0.type', 'button');
+
+        // Add then remove a column.
+        $component->call('addColumn', '1')
+            ->assertCount('blocks.1.data.columns', 3)
+            ->call('removeColumn', '1', 2)
+            ->assertCount('blocks.1.data.columns', 2);
     }
 
     public function test_users_without_access_to_the_site_are_forbidden(): void

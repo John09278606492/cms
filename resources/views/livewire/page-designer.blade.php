@@ -94,18 +94,18 @@
                              x-on:drop.prevent="handleDrop({{ $i }})"
                              :class="overIndex === {{ $i }} ? 'h-14 m-2 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : 'h-2'"></div>
                         <div wire:key="block-{{ $i }}"
-                             wire:click="select({{ $i }})"
+                             wire:click="select('{{ $i }}')"
                              draggable="true"
                              x-on:dragstart="dragType = 'move'; dragFrom = {{ $i }}; $event.dataTransfer.effectAllowed = 'move'"
                              x-on:dragend="reset()"
-                             class="group/blk relative cursor-pointer border-2 transition {{ $selected === $i ? 'border-amber-500' : 'border-transparent hover:border-amber-300' }}">
+                             class="group/blk relative cursor-pointer border-2 transition {{ $selectedPath === (string) $i ? 'border-amber-500' : 'border-transparent hover:border-amber-300' }}">
                             {{-- Floating toolbar --}}
-                            <div class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg bg-stone-900/90 p-0.5 text-white opacity-0 shadow-lg transition group-hover/blk:opacity-100 {{ $selected === $i ? '!opacity-100' : '' }}">
+                            <div class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg bg-stone-900/90 p-0.5 text-white opacity-0 shadow-lg transition group-hover/blk:opacity-100 {{ $selectedPath === (string) $i ? '!opacity-100' : '' }}">
                                 <span class="flex cursor-grab items-center gap-1 px-2 text-[11px] font-medium text-stone-300 active:cursor-grabbing">@svg('heroicon-o-bars-2', 'h-3.5 w-3.5') {{ $labels[$block['type']] ?? $block['type'] }}</span>
-                                <button wire:click.stop="moveUp({{ $i }})" title="Move up" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-up', 'h-3.5 w-3.5')</button>
-                                <button wire:click.stop="moveDown({{ $i }})" title="Move down" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-down', 'h-3.5 w-3.5')</button>
-                                <button wire:click.stop="duplicate({{ $i }})" title="Duplicate" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-document-duplicate', 'h-3.5 w-3.5')</button>
-                                <button wire:click.stop="remove({{ $i }})" title="Delete" class="rounded p-1 text-red-300 hover:bg-red-500/30">@svg('heroicon-o-trash', 'h-3.5 w-3.5')</button>
+                                <button wire:click.stop="moveUp('{{ $i }}')" title="Move up" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-up', 'h-3.5 w-3.5')</button>
+                                <button wire:click.stop="moveDown('{{ $i }}')" title="Move down" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-down', 'h-3.5 w-3.5')</button>
+                                <button wire:click.stop="duplicate('{{ $i }}')" title="Duplicate" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-document-duplicate', 'h-3.5 w-3.5')</button>
+                                <button wire:click.stop="remove('{{ $i }}')" title="Delete" class="rounded p-1 text-red-300 hover:bg-red-500/30">@svg('heroicon-o-trash', 'h-3.5 w-3.5')</button>
                             </div>
                             {{-- The block, rendered with the real partials but inert --}}
                             <div class="pointer-events-none p-4">
@@ -140,23 +140,29 @@
             <div class="border-b border-stone-200 px-4 py-3">
                 <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Inspector</p>
             </div>
-            @if ($selected !== null && isset($blocks[$selected]))
+            @php $sel = $this->blockAt($selectedPath); @endphp
+            @if ($sel)
                 @php
-                    $sel = $blocks[$selected];
                     $selData = is_array($sel['data'] ?? null) ? $sel['data'] : [];
-                    $selPath = 'blocks.' . $selected . '.data';
+                    $selPath = 'blocks.' . $selectedPath . '.data';
                     $contentFields = \App\PageBuilder\BlockFields::for($sel['type']);
+                    $isNested = str_contains((string) $selectedPath, '.data.');
+                    $parentPath = $isNested ? strstr((string) $selectedPath, '.data.', true) : null;
                 @endphp
-                <div wire:key="inspector-{{ $selected }}-{{ $sel['type'] }}" class="p-4">
+                <div wire:key="inspector-{{ $selectedPath }}" class="p-4">
+                    @if ($isNested && $parentPath !== null)
+                        <button wire:click="select('{{ $parentPath }}')" class="mb-3 inline-flex items-center gap-1 text-xs font-medium text-amber-700 hover:text-amber-800">
+                            @svg('heroicon-o-arrow-up-left', 'h-3.5 w-3.5') Back to container
+                        </button>
+                    @endif
                     <div class="flex items-center justify-between">
                         <h3 class="text-base font-semibold text-stone-900">{{ $labels[$sel['type']] ?? $sel['type'] }}</h3>
-                        <span class="text-xs text-stone-400">#{{ $selected + 1 }}</span>
                     </div>
                     <div class="mt-3 grid grid-cols-4 gap-1.5">
-                        <button wire:click="moveUp({{ $selected }})" title="Move up" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-chevron-up', 'mx-auto h-4 w-4')</button>
-                        <button wire:click="moveDown({{ $selected }})" title="Move down" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-chevron-down', 'mx-auto h-4 w-4')</button>
-                        <button wire:click="duplicate({{ $selected }})" title="Duplicate" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-document-duplicate', 'mx-auto h-4 w-4')</button>
-                        <button wire:click="remove({{ $selected }})" title="Delete" class="rounded-lg border border-red-200 py-2 text-red-600 hover:bg-red-50">@svg('heroicon-o-trash', 'mx-auto h-4 w-4')</button>
+                        <button wire:click="moveUp('{{ $selectedPath }}')" title="Move up" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-chevron-up', 'mx-auto h-4 w-4')</button>
+                        <button wire:click="moveDown('{{ $selectedPath }}')" title="Move down" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-chevron-down', 'mx-auto h-4 w-4')</button>
+                        <button wire:click="duplicate('{{ $selectedPath }}')" title="Duplicate" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-document-duplicate', 'mx-auto h-4 w-4')</button>
+                        <button wire:click="remove('{{ $selectedPath }}')" title="Delete" class="rounded-lg border border-red-200 py-2 text-red-600 hover:bg-red-50">@svg('heroicon-o-trash', 'mx-auto h-4 w-4')</button>
                     </div>
 
                     {{-- Content fields --}}
@@ -165,6 +171,56 @@
                             <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Content</p>
                             @foreach ($contentFields as $field)
                                 @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
+                            @endforeach
+                        </div>
+                    @endif
+
+                    {{-- Columns container: manage the widgets inside each column --}}
+                    @if ($sel['type'] === 'columns')
+                        @php $cols = is_array($selData['columns'] ?? null) ? $selData['columns'] : []; @endphp
+                        <div class="mt-5 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Columns &amp; contents</p>
+                                <button wire:click="addColumn('{{ $selectedPath }}')" class="text-xs font-medium text-amber-700 hover:text-amber-800">+ Column</button>
+                            </div>
+                            @foreach ($cols as $c => $col)
+                                @php
+                                    $colBlocks = is_array($col['blocks'] ?? null) ? $col['blocks'] : [];
+                                    $colList = $selectedPath . '.data.columns.' . $c . '.blocks';
+                                @endphp
+                                <div wire:key="col-{{ $selectedPath }}-{{ $c }}" class="rounded-lg border border-stone-200 bg-stone-50 p-2.5">
+                                    <div class="mb-1.5 flex items-center justify-between">
+                                        <span class="text-[11px] font-semibold uppercase tracking-wide text-stone-400">Column {{ $c + 1 }}</span>
+                                        @if (count($cols) > 1)
+                                            <button wire:click="removeColumn('{{ $selectedPath }}', {{ $c }})" class="text-xs text-red-500 hover:text-red-700">Remove</button>
+                                        @endif
+                                    </div>
+                                    <div class="space-y-1">
+                                        @forelse ($colBlocks as $j => $cb)
+                                            <div wire:key="cb-{{ $selectedPath }}-{{ $c }}-{{ $j }}" class="flex items-center justify-between rounded-md border border-stone-200 bg-white px-2 py-1">
+                                                <button wire:click="select('{{ $colList . '.' . $j }}')" class="truncate text-left text-xs font-medium text-stone-700 hover:text-stone-950">{{ $labels[$cb['type']] ?? $cb['type'] }}</button>
+                                                <span class="flex shrink-0 items-center gap-0.5 text-stone-400">
+                                                    <button wire:click="moveUp('{{ $colList . '.' . $j }}')" title="Up" class="rounded p-0.5 hover:bg-stone-100">@svg('heroicon-o-chevron-up', 'h-3.5 w-3.5')</button>
+                                                    <button wire:click="moveDown('{{ $colList . '.' . $j }}')" title="Down" class="rounded p-0.5 hover:bg-stone-100">@svg('heroicon-o-chevron-down', 'h-3.5 w-3.5')</button>
+                                                    <button wire:click="remove('{{ $colList . '.' . $j }}')" title="Remove" class="rounded p-0.5 text-red-400 hover:bg-red-50">@svg('heroicon-o-x-mark', 'h-3.5 w-3.5')</button>
+                                                </span>
+                                            </div>
+                                        @empty
+                                            <p class="px-1 py-1 text-xs text-stone-400">No widgets yet.</p>
+                                        @endforelse
+                                    </div>
+                                    <div x-data="{ w: '' }" class="mt-2 flex gap-1">
+                                        <select x-model="w" class="w-full rounded-md border border-stone-300 px-2 py-1 text-xs text-stone-700">
+                                            <option value="">Add widget…</option>
+                                            @foreach ($this->palette as $p)
+                                                @if ($p['name'] !== 'columns')
+                                                    <option value="{{ $p['name'] }}">{{ $p['label'] }}</option>
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                        <button x-on:click="if (w) { $wire.addInto('{{ $colList }}', w); w = ''; }" class="shrink-0 rounded-md bg-stone-900 px-2.5 py-1 text-xs font-medium text-white hover:bg-stone-700">Add</button>
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     @endif
