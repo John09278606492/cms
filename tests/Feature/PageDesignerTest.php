@@ -330,6 +330,61 @@ class PageDesignerTest extends TestCase
         $this->assertCount(1, $component->get('blocks.1.data.images'));
     }
 
+    public function test_moveto_can_drag_a_widget_into_and_out_of_a_container(): void
+    {
+        $this->actingAs($this->owner);
+
+        // Start: [heading], then add an (empty) container -> [heading, container].
+        $component = Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'container');
+
+        // Drag the top-level heading INTO the container.
+        $component->call('moveTo', '0', '1.data.blocks', 0)
+            ->assertCount('blocks', 1)
+            ->assertSet('blocks.0.type', 'container')
+            ->assertSet('blocks.0.data.blocks.0.type', 'heading');
+
+        // Drag it back OUT to the top level.
+        $component->call('moveTo', '0.data.blocks.0', '', 1)
+            ->assertCount('blocks', 2)
+            ->assertSet('blocks.1.type', 'heading')
+            ->assertCount('blocks.0.data.blocks', 0);
+    }
+
+    public function test_moveto_reorders_within_a_list(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'button')          // [heading, button]
+            ->call('moveTo', '1', '', 0)          // button to front
+            ->assertSet('blocks.0.type', 'button')
+            ->assertSet('blocks.1.type', 'heading');
+    }
+
+    public function test_a_container_cannot_be_dropped_into_itself(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'container')               // [heading, container]
+            ->call('moveTo', '1', '1.data.blocks', 0)     // ignored
+            ->assertCount('blocks', 2)
+            ->assertSet('blocks.1.type', 'container')
+            ->assertCount('blocks.1.data.blocks', 0);
+    }
+
+    public function test_nested_widgets_render_selectably_on_the_canvas(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'container')
+            ->call('addInto', '1.data.blocks', 'button')
+            // The recursive canvas renders a keyed, selectable wrapper for the nested block.
+            ->assertSeeHtml('cv-1.data.blocks.0');
+    }
+
     public function test_users_without_access_to_the_site_are_forbidden(): void
     {
         $stranger = User::query()->create([

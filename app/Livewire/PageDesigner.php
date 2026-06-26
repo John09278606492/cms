@@ -253,6 +253,73 @@ class PageDesigner extends Component
         $this->selectedPath = null;
     }
 
+    /**
+     * Move a block from anywhere to a position in any list — including into and
+     * out of containers/columns. Drives drag-and-drop across the whole canvas.
+     */
+    public function moveTo(string $fromPath, string $toListPath, int $toIndex): void
+    {
+        $block = $this->blockAt($fromPath);
+
+        if ($block === null) {
+            return;
+        }
+
+        // Never drop a container into itself or one of its descendants.
+        if ($toListPath === $fromPath || str_starts_with($toListPath, $fromPath . '.')) {
+            return;
+        }
+
+        [$fromListPath, $fromIndex] = $this->splitPath($fromPath);
+
+        $fromList = $this->getList($fromListPath);
+        array_splice($fromList, $fromIndex, 1);
+        $this->putList($fromListPath, $fromList);
+
+        // Removing the source can shift the indices the target path relies on.
+        if ($fromListPath === $toListPath) {
+            if ($fromIndex < $toIndex) {
+                $toIndex--;
+            }
+        } else {
+            $toListPath = $this->adjustPathAfterRemoval($toListPath, $fromListPath, $fromIndex);
+        }
+
+        $toList = $this->getList($toListPath);
+        $toIndex = max(0, min($toIndex, count($toList)));
+        array_splice($toList, $toIndex, 0, [$block]);
+        $this->putList($toListPath, $toList);
+
+        $this->selectedPath = $this->pathInList($toListPath, $toIndex);
+    }
+
+    /**
+     * When a block is removed from $removedListPath at $removedIndex, fix up any
+     * other path whose branch index into that same list was after it.
+     */
+    protected function adjustPathAfterRemoval(string $path, string $removedListPath, int $removedIndex): string
+    {
+        if ($removedListPath === '') {
+            $segments = explode('.', $path);
+            if ((int) $segments[0] > $removedIndex) {
+                $segments[0] = (string) ((int) $segments[0] - 1);
+            }
+
+            return implode('.', $segments);
+        }
+
+        if (str_starts_with($path, $removedListPath . '.')) {
+            $rest = explode('.', substr($path, strlen($removedListPath) + 1));
+            if ((int) $rest[0] > $removedIndex) {
+                $rest[0] = (string) ((int) $rest[0] - 1);
+            }
+
+            return $removedListPath . '.' . implode('.', $rest);
+        }
+
+        return $path;
+    }
+
     // --- Columns container --------------------------------------------------
 
     public function addColumn(string $path): void

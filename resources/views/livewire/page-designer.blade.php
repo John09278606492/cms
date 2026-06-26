@@ -11,25 +11,17 @@
 <div class="flex h-screen flex-col" x-data="{
     dragType: null,
     dragName: null,
-    dragFrom: null,
-    overIndex: null,
-    overContainer: null,
-    handleDrop(target) {
+    dragFromPath: null,
+    overKey: null,
+    handleDropAt(listPath, index) {
         if (this.dragType === 'add' && this.dragName) {
-            $wire.insertAt(this.dragName, target);
-        } else if (this.dragType === 'move' && this.dragFrom !== null) {
-            const to = this.dragFrom < target ? target - 1 : target;
-            $wire.move(this.dragFrom, to);
+            $wire.insertInto(listPath, this.dragName, index);
+        } else if (this.dragType === 'move' && this.dragFromPath !== null) {
+            $wire.moveTo(this.dragFromPath, listPath, index);
         }
         this.reset();
     },
-    dropInto(listPath) {
-        if (this.dragType === 'add' && this.dragName) {
-            $wire.addInto(listPath, this.dragName);
-        }
-        this.reset();
-    },
-    reset() { this.dragType = null; this.dragName = null; this.dragFrom = null; this.overIndex = null; this.overContainer = null; },
+    reset() { this.dragType = null; this.dragName = null; this.dragFromPath = null; this.overKey = null; },
 }">
     {{-- Top bar --}}
     <header class="flex items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 py-2.5">
@@ -93,72 +85,19 @@
         {{-- Canvas --}}
         <main class="flex-1 overflow-y-auto bg-stone-200 p-6">
             <div class="mx-auto {{ $canvasWidth }} transition-[max-width] duration-300">
-                <div class="min-h-[60vh] overflow-hidden rounded-2xl bg-white shadow-sm"
+                <div class="min-h-[60vh] overflow-hidden rounded-2xl bg-white p-2 shadow-sm"
                      x-on:dragover.prevent="$event.dataTransfer.dropEffect = (dragType === 'add' ? 'copy' : 'move')">
-                    @forelse ($blocks as $i => $block)
-                        {{-- Drop zone before block i --}}
-                        <div class="transition-all"
-                             x-show="dragType !== null"
-                             x-on:dragover.prevent="overIndex = {{ $i }}"
-                             x-on:drop.prevent="handleDrop({{ $i }})"
-                             :class="overIndex === {{ $i }} ? 'h-14 m-2 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : 'h-2'"></div>
-                        <div wire:key="block-{{ $i }}"
-                             wire:click="select('{{ $i }}')"
-                             draggable="true"
-                             x-on:dragstart="dragType = 'move'; dragFrom = {{ $i }}; $event.dataTransfer.effectAllowed = 'move'"
-                             x-on:dragend="reset()"
-                             class="group/blk relative cursor-pointer border-2 transition {{ $selectedPath === (string) $i ? 'border-amber-500' : 'border-transparent hover:border-amber-300' }}">
-                            {{-- Floating toolbar --}}
-                            <div class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg bg-stone-900/90 p-0.5 text-white opacity-0 shadow-lg transition group-hover/blk:opacity-100 {{ $selectedPath === (string) $i ? '!opacity-100' : '' }}">
-                                <span class="flex cursor-grab items-center gap-1 px-2 text-[11px] font-medium text-stone-300 active:cursor-grabbing">@svg('heroicon-o-bars-2', 'h-3.5 w-3.5') {{ $labels[$block['type']] ?? $block['type'] }}</span>
-                                <button wire:click.stop="moveUp('{{ $i }}')" title="Move up" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-up', 'h-3.5 w-3.5')</button>
-                                <button wire:click.stop="moveDown('{{ $i }}')" title="Move down" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-down', 'h-3.5 w-3.5')</button>
-                                <button wire:click.stop="duplicate('{{ $i }}')" title="Duplicate" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-document-duplicate', 'h-3.5 w-3.5')</button>
-                                <button wire:click.stop="remove('{{ $i }}')" title="Delete" class="rounded p-1 text-red-300 hover:bg-red-500/30">@svg('heroicon-o-trash', 'h-3.5 w-3.5')</button>
-                            </div>
-                            @if ($block['type'] === 'container')
-                                {{-- Containers are live drop targets: drag widgets straight in. --}}
-                                @php $kids = is_array($block['data']['blocks'] ?? null) ? $block['data']['blocks'] : []; @endphp
-                                <div class="m-3 rounded-xl border-2 border-dashed p-2 transition"
-                                     x-on:dragover.prevent.stop="overContainer = '{{ $i }}'"
-                                     x-on:drop.prevent.stop="dropInto('{{ $i }}.data.blocks')"
-                                     :class="overContainer === '{{ $i }}' && dragType === 'add' ? 'border-amber-400 bg-amber-50' : 'border-stone-200'">
-                                    @if (empty($kids))
-                                        <div class="flex min-h-[110px] flex-col items-center justify-center gap-1 text-center text-xs text-stone-400">
-                                            @svg('heroicon-o-plus-circle', 'h-6 w-6')
-                                            <span>Drag widgets here</span>
-                                        </div>
-                                    @else
-                                        <div class="pointer-events-none">
-                                            <x-page-builder :blocks="$kids" />
-                                        </div>
-                                    @endif
-                                </div>
-                            @else
-                                {{-- The block, rendered with the real partials but inert --}}
-                                <div class="pointer-events-none p-4">
-                                    <x-page-builder :blocks="[$block]" />
-                                </div>
-                            @endif
-                        </div>
-                    @empty
+                    @if (empty($blocks))
                         <div class="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center"
-                             x-on:dragover.prevent="overIndex = 0"
-                             x-on:drop.prevent="handleDrop(0)"
-                             :class="overIndex === 0 && dragType ? 'bg-amber-50 ring-2 ring-inset ring-amber-300' : ''">
+                             x-on:dragover.prevent.stop="overKey = ':0'"
+                             x-on:drop.prevent.stop="handleDropAt('', 0)"
+                             :class="overKey === ':0' && dragType ? 'bg-amber-50 ring-2 ring-inset ring-amber-300' : ''">
                             @svg('heroicon-o-square-3-stack-3d', 'h-10 w-10 text-stone-300')
                             <p class="text-stone-500">Your page is empty.</p>
                             <p class="text-sm text-stone-400">Drag a widget here, or click one on the left to start building.</p>
                         </div>
-                    @endforelse
-
-                    {{-- Final drop zone (append to end) --}}
-                    @if (count($blocks) > 0)
-                        <div class="transition-all"
-                             x-show="dragType !== null"
-                             x-on:dragover.prevent="overIndex = {{ count($blocks) }}"
-                             x-on:drop.prevent="handleDrop({{ count($blocks) }})"
-                             :class="overIndex === {{ count($blocks) }} ? 'h-14 m-2 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : 'h-6'"></div>
+                    @else
+                        @include('livewire.partials.canvas-list', ['blocks' => $blocks, 'listPath' => '', 'labels' => $labels])
                     @endif
                 </div>
             </div>
