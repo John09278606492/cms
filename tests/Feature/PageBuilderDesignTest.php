@@ -72,6 +72,15 @@ class PageBuilderDesignTest extends TestCase
         $this->assertStringContainsString('margin-left: auto; margin-right: auto', $html);
     }
 
+    public function test_offset_and_layer_controls_render(): void
+    {
+        $html = $this->renderPageWith(['_offset_x' => '20px', '_offset_y' => '-40px', '_z' => '5']);
+
+        $this->assertStringContainsString('transform: translate(20px, -40px)', $html);
+        $this->assertStringContainsString('z-index: 5', $html);
+        $this->assertStringContainsString('position: relative', $html);
+    }
+
     public function test_text_colour_overrides_descendant_block_colours(): void
     {
         $html = $this->renderPageWith(['_text_color' => '#ffffff']);

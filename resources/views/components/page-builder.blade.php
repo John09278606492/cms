@@ -103,6 +103,19 @@
                 $styles[] = "min-height: {$sizeMinH}";
             }
 
+            // Offset / overlap: translate keeps the element in flow (siblings
+            // don't shift) so it can overlap neighbours; z-index layers it.
+            $offX = trim((string) ($data['_offset_x'] ?? ''));
+            $offY = trim((string) ($data['_offset_y'] ?? ''));
+            if ($offX !== '' || $offY !== '') {
+                $styles[] = 'transform: translate(' . ($offX !== '' ? $offX : '0') . ', ' . ($offY !== '' ? $offY : '0') . ')';
+            }
+            $zIndex = trim((string) ($data['_z'] ?? ''));
+            if ($zIndex !== '') {
+                $styles[] = 'position: relative';
+                $styles[] = "z-index: {$zIndex}";
+            }
+
             $anim = $data['_anim'] ?? 'none';
             $hideMobile = ! empty($data['_hide_mobile']);
             $hideTablet = ! empty($data['_hide_tablet']);

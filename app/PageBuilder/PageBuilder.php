@@ -311,6 +311,10 @@ class PageBuilder
                         Select::make('_self')->label('Box alignment')
                             ->options(['left' => 'Left', 'center' => 'Center', 'right' => 'Right'])
                             ->placeholder('Default'),
+                        TextInput::make('_offset_x')->label('Nudge right / left')->placeholder('e.g. 20px or -30px'),
+                        TextInput::make('_offset_y')->label('Nudge down / up')->placeholder('e.g. -40px'),
+                        TextInput::make('_z')->label('Layer (front/back)')->numeric()
+                            ->helperText('Higher numbers sit in front when elements overlap.'),
                     ]),
                 Fieldset::make('Typography')
                     ->columns(3)
