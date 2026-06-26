@@ -9,7 +9,7 @@
 @endphp
 <section class="rounded-3xl border border-stone-200 bg-white px-8 py-10">
     @if (! empty($eyebrow))
-        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-amber-700">{{ $eyebrow }}</p>
+        <p class="pb-eyebrow text-xs font-semibold uppercase tracking-[0.35em]">{{ $eyebrow }}</p>
     @endif
     @if (! empty($heading))
         <h2 class="mt-2 text-3xl font-semibold tracking-tight text-stone-950">{{ $heading }}</h2>

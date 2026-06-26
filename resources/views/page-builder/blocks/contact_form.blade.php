@@ -88,7 +88,7 @@
                 </div>
         @if ($interactive)
                 <button type="submit"
-                        class="inline-flex items-center justify-center rounded-full bg-stone-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-800">
+                        class="pb-btn-primary inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition">
                     {{ $buttonLabel }}
                 </button>
             </form>

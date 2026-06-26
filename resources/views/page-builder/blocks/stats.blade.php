@@ -15,7 +15,7 @@
         <div class="mt-6 grid gap-6 {{ $grid }}">
             @foreach ($items as $item)
                 <div>
-                    <div class="text-4xl font-semibold text-amber-600">{{ $item['value'] ?? '' }}</div>
+                    <div class="pb-accent text-4xl font-semibold">{{ $item['value'] ?? '' }}</div>
                     <div class="mt-1 text-sm text-stone-500">{{ $item['label'] ?? '' }}</div>
                 </div>
             @endforeach

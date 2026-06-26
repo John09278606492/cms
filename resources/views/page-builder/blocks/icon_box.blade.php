@@ -17,6 +17,6 @@
         <p class="max-w-prose leading-7 text-stone-600">{{ $text }}</p>
     @endif
     @if (! empty($link_label) && ! empty($link_url))
-        <a href="{{ $link_url }}" class="font-semibold text-amber-700 transition hover:text-amber-800">{{ $link_label }} &rarr;</a>
+        <a href="{{ $link_url }}" class="pb-accent font-semibold transition hover:opacity-80">{{ $link_label }} &rarr;</a>
     @endif
 </div>

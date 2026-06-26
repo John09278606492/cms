@@ -20,7 +20,7 @@
             {!! \Filament\Forms\Components\RichEditor\RichContentRenderer::make($body ?? '')->toHtml() !!}
         </div>
         @if (! empty($button_label))
-            <a href="{{ $button_url ?? '#' }}" class="mt-5 inline-flex rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">{{ $button_label }}</a>
+            <a href="{{ $button_url ?? '#' }}" class="pb-btn-primary mt-5 inline-flex rounded-full px-5 py-3 text-sm font-medium transition">{{ $button_label }}</a>
         @endif
     </div>
 </div>

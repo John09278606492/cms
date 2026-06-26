@@ -9,7 +9,7 @@
 @endphp
 <section>
     @if (! empty($eyebrow))
-        <p class="text-center text-xs font-semibold uppercase tracking-[0.35em] text-amber-700">{{ $eyebrow }}</p>
+        <p class="pb-eyebrow text-center text-xs font-semibold uppercase tracking-[0.35em]">{{ $eyebrow }}</p>
     @endif
     @if (! empty($heading))
         <h2 class="mt-2 text-center text-3xl font-semibold tracking-tight text-stone-950">{{ $heading }}</h2>
@@ -26,7 +26,7 @@
                 @endphp
                 <div class="flex h-full flex-col rounded-3xl border p-7 {{ $featured ? 'border-stone-950 bg-stone-950 text-white shadow-xl' : 'border-stone-200 bg-white text-stone-900' }}">
                     @if ($featured)
-                        <span class="mb-3 inline-flex w-fit rounded-full bg-amber-400 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-950">Most popular</span>
+                        <span class="pb-accent-bg mb-3 inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-950">Most popular</span>
                     @endif
                     <h3 class="text-lg font-semibold {{ $featured ? 'text-white' : 'text-stone-950' }}">{{ $plan['name'] ?? '' }}</h3>
                     <div class="mt-4 flex items-baseline gap-1">
@@ -42,7 +42,7 @@
                         <ul class="mt-6 space-y-3 text-sm">
                             @foreach ($features as $feature)
                                 <li class="flex items-start gap-2">
-                                    <span class="mt-0.5 {{ $featured ? 'text-amber-400' : 'text-amber-600' }}">&#10003;</span>
+                                    <span class="mt-0.5 {{ $featured ? 'pb-accent-on-dark' : 'pb-accent' }}">&#10003;</span>
                                     <span class="{{ $featured ? 'text-stone-200' : 'text-stone-700' }}">{{ $feature }}</span>
                                 </li>
                             @endforeach
@@ -50,7 +50,7 @@
                     @endif
                     @if (! empty($plan['button_label']) && ! empty($plan['button_url']))
                         <a href="{{ $plan['button_url'] }}"
-                           class="mt-7 inline-flex w-full items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition {{ $featured ? 'bg-amber-400 text-stone-950 hover:bg-amber-300' : 'bg-stone-950 text-white hover:bg-stone-800' }}">
+                           class="mt-7 inline-flex w-full items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition {{ $featured ? 'pb-accent-bg text-stone-950 hover:opacity-90' : 'pb-btn-primary' }}">
                             {{ $plan['button_label'] }}
                         </a>
                     @endif

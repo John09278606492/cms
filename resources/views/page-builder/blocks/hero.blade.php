@@ -7,9 +7,9 @@
         default => 'bg-amber-50 text-stone-900',
     };
     $alignClass = $align === 'center' ? 'items-center text-center mx-auto' : ($align === 'right' ? 'items-end text-right ml-auto' : 'items-start text-left');
-    $eyebrowClass = $surface === 'contrast' ? 'text-amber-300' : 'text-amber-700';
+    $eyebrowClass = $surface === 'contrast' ? 'pb-eyebrow-on-dark' : 'pb-eyebrow';
     $copyClass = $surface === 'contrast' ? 'text-stone-300' : 'text-stone-600';
-    $primaryBtn = $surface === 'contrast' ? 'bg-white text-stone-950 hover:bg-stone-100' : 'bg-stone-950 text-white hover:bg-stone-800';
+    $primaryBtn = $surface === 'contrast' ? 'bg-white text-stone-950 hover:bg-stone-100' : 'pb-btn-primary';
 @endphp
 <section class="rounded-3xl px-8 py-14 {{ $container }}">
     <div class="flex w-full max-w-3xl flex-col gap-5 {{ $alignClass }}">

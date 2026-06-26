@@ -118,6 +118,64 @@ class StarterTemplates
                     self::block('map', ['query' => 'Times Square, New York', 'height' => 'md', 'zoom' => '13']),
                 ],
             ],
+            'event' => [
+                'label' => 'Event page',
+                'description' => 'Hero, countdown, key numbers and a registration form.',
+                'blocks' => [
+                    self::block('hero', [
+                        'eyebrow' => 'Save the date',
+                        'heading' => 'Our biggest event of the year',
+                        'copy' => 'Add the date, venue and a one-line pitch that makes people want to attend.',
+                        'primary_label' => 'Register now',
+                        'primary_url' => '#register',
+                        'surface' => 'contrast',
+                        'align' => 'center',
+                    ]),
+                    self::block('countdown', [
+                        'heading' => 'Starts in',
+                        'until' => now()->addDays(30)->setTime(9, 0)->toDateTimeString(),
+                        'expired_text' => "It's happening today!",
+                    ]),
+                    self::block('counter', [
+                        'heading' => 'Why attend',
+                        'columns' => '3',
+                        'items' => [
+                            ['value' => 40, 'suffix' => '+', 'label' => 'Speakers'],
+                            ['value' => 12, 'label' => 'Workshops'],
+                            ['value' => 2000, 'suffix' => '+', 'label' => 'Attendees'],
+                        ],
+                    ]),
+                    self::block('contact_form', [
+                        'heading' => 'Register your interest',
+                        'button_label' => 'Count me in',
+                        'show_subject' => false,
+                        'send_email' => true,
+                    ]),
+                ],
+            ],
+            'portfolio' => [
+                'label' => 'Portfolio / work',
+                'description' => 'Intro, image carousel, services and testimonial.',
+                'blocks' => [
+                    self::block('heading', ['text' => 'Selected work', 'level' => 'h1', 'align' => 'center']),
+                    self::block('carousel', ['images' => [], 'autoplay' => true, 'interval' => '5000', 'ratio' => 'wide']),
+                    self::block('feature_grid', [
+                        'eyebrow' => 'What I do',
+                        'heading' => 'Capabilities',
+                        'columns' => '3',
+                        'items' => [
+                            ['emoji' => '🎨', 'title' => 'Branding', 'description' => 'Describe this capability.'],
+                            ['emoji' => '🖥️', 'title' => 'Web', 'description' => 'Describe this capability.'],
+                            ['emoji' => '📷', 'title' => 'Photography', 'description' => 'Describe this capability.'],
+                        ],
+                    ]),
+                    self::block('testimonial', [
+                        'quote' => 'A short, glowing quote from a happy client.',
+                        'author' => 'A. Client',
+                        'role' => 'Director, Studio',
+                    ]),
+                ],
+            ],
         ];
     }
 

@@ -1,0 +1,41 @@
+/*
+ * Page-builder brand tokens. Defaults match the original stone/amber palette,
+ * so blocks look identical until a site sets its brand colours (the public
+ * layout then overrides these variables per-site). Loaded by both the public
+ * stylesheet and the Filament admin theme so editor previews stay styled.
+ */
+:root {
+    --brand-primary: #0c0a09;
+    --brand-primary-hover: #292524;
+    --brand-accent: #b45309;
+    --brand-accent-on-dark: #fbbf24;
+}
+
+.pb-btn-primary {
+    background-color: var(--brand-primary);
+    color: #fff;
+}
+
+.pb-btn-primary:hover {
+    background-color: var(--brand-primary-hover);
+}
+
+.pb-eyebrow {
+    color: var(--brand-accent);
+}
+
+.pb-eyebrow-on-dark {
+    color: var(--brand-accent-on-dark);
+}
+
+.pb-accent {
+    color: var(--brand-accent);
+}
+
+.pb-accent-on-dark {
+    color: var(--brand-accent-on-dark);
+}
+
+.pb-accent-bg {
+    background-color: var(--brand-accent-on-dark);
+}

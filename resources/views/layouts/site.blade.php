@@ -67,8 +67,8 @@
     @if ($headingFont || $bodyFont || $brandPrimary || $brandAccent)
         <style>
             :root {
-                @if ($brandPrimary) --brand-primary: {{ $brandPrimary }}; @endif
-                @if ($brandAccent) --brand-accent: {{ $brandAccent }}; @endif
+                @if ($brandPrimary) --brand-primary: {{ $brandPrimary }}; --brand-primary-hover: {{ $brandPrimary }}; @endif
+                @if ($brandAccent) --brand-accent: {{ $brandAccent }}; --brand-accent-on-dark: {{ $brandAccent }}; @endif
                 @if ($bodyFont) --font-body: '{{ $bodyFont }}', ui-sans-serif, system-ui, sans-serif; @endif
                 @if ($headingFont) --font-heading: '{{ $headingFont }}', ui-sans-serif, system-ui, sans-serif; @endif
             }
