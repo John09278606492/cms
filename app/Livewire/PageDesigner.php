@@ -54,6 +54,16 @@ class PageDesigner extends Component
         $this->dirty = true;
     }
 
+    public function insertAt(string $name, int $index): void
+    {
+        $index = max(0, min($index, count($this->blocks)));
+        $block = ['type' => $name, 'data' => PageBuilder::defaultData($name)];
+
+        array_splice($this->blocks, $index, 0, [$block]);
+        $this->selected = $index;
+        $this->dirty = true;
+    }
+
     public function move(int $from, int $to): void
     {
         if (! isset($this->blocks[$from]) || $to < 0 || $to >= count($this->blocks)) {

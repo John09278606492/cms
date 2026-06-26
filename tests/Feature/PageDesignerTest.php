@@ -73,6 +73,41 @@ class PageDesignerTest extends TestCase
             ->assertSet('blocks.1.data.label', 'Click me');
     }
 
+    public function test_dragging_a_widget_inserts_it_at_a_position(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('insertAt', 'button', 0)   // drop before the existing heading
+            ->assertCount('blocks', 2)
+            ->assertSet('blocks.0.type', 'button')
+            ->assertSet('blocks.1.type', 'heading')
+            ->assertSet('selected', 0)
+            ->assertSet('dirty', true);
+    }
+
+    public function test_drag_reorder_indices_place_blocks_correctly(): void
+    {
+        $this->actingAs($this->owner);
+
+        // Build [heading, button, feature_grid].
+        $component = Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'button')
+            ->call('addBlock', 'feature_grid');
+
+        // Drag the heading (from 0) onto the end drop-zone (target 3). The view
+        // computes to = from < target ? target - 1 : target = 2.
+        $component->call('move', 0, 2)
+            ->assertSet('blocks.0.type', 'button')
+            ->assertSet('blocks.1.type', 'feature_grid')
+            ->assertSet('blocks.2.type', 'heading');
+
+        // Drag feature_grid (now at 1) onto the first drop-zone (target 0): to = 0.
+        $component->call('move', 1, 0)
+            ->assertSet('blocks.0.type', 'feature_grid')
+            ->assertSet('blocks.1.type', 'button');
+    }
+
     public function test_blocks_can_be_reordered_and_removed(): void
     {
         $this->actingAs($this->owner);

@@ -8,7 +8,22 @@
     };
     $backUrl = \App\Filament\Resources\Pages\PageResource::getUrl('edit', ['record' => $pageId], panel: 'admin', tenant: $site);
 @endphp
-<div class="flex h-screen flex-col" x-data="{}">
+<div class="flex h-screen flex-col" x-data="{
+    dragType: null,
+    dragName: null,
+    dragFrom: null,
+    overIndex: null,
+    handleDrop(target) {
+        if (this.dragType === 'add' && this.dragName) {
+            $wire.insertAt(this.dragName, target);
+        } else if (this.dragType === 'move' && this.dragFrom !== null) {
+            const to = this.dragFrom < target ? target - 1 : target;
+            $wire.move(this.dragFrom, to);
+        }
+        this.reset();
+    },
+    reset() { this.dragType = null; this.dragName = null; this.dragFrom = null; this.overIndex = null; },
+}">
     {{-- Top bar --}}
     <header class="flex items-center justify-between gap-4 border-b border-stone-200 bg-white px-4 py-2.5">
         <div class="flex items-center gap-3">
@@ -54,7 +69,10 @@
                 <div class="grid grid-cols-2 gap-1.5 px-2">
                     @foreach ($items as $item)
                         <button wire:click="addBlock('{{ $item['name'] }}')"
-                                class="flex flex-col items-center gap-1.5 rounded-lg border border-transparent bg-stone-800/60 px-2 py-3 text-center transition hover:border-stone-600 hover:bg-stone-800">
+                                draggable="true"
+                                x-on:dragstart="dragType = 'add'; dragName = '{{ $item['name'] }}'; $event.dataTransfer.effectAllowed = 'copy'"
+                                x-on:dragend="reset()"
+                                class="flex cursor-grab flex-col items-center gap-1.5 rounded-lg border border-transparent bg-stone-800/60 px-2 py-3 text-center transition hover:border-stone-600 hover:bg-stone-800 active:cursor-grabbing">
                             @svg($item['icon'], 'h-5 w-5 text-stone-300')
                             <span class="text-[11px] leading-tight text-stone-300">{{ $item['label'] }}</span>
                         </button>
@@ -66,14 +84,24 @@
         {{-- Canvas --}}
         <main class="flex-1 overflow-y-auto bg-stone-200 p-6">
             <div class="mx-auto {{ $canvasWidth }} transition-[max-width] duration-300">
-                <div class="min-h-[60vh] overflow-hidden rounded-2xl bg-white shadow-sm">
+                <div class="min-h-[60vh] overflow-hidden rounded-2xl bg-white shadow-sm"
+                     x-on:dragover.prevent="$event.dataTransfer.dropEffect = (dragType === 'add' ? 'copy' : 'move')">
                     @forelse ($blocks as $i => $block)
+                        {{-- Drop zone before block i --}}
+                        <div class="transition-all"
+                             x-show="dragType !== null"
+                             x-on:dragover.prevent="overIndex = {{ $i }}"
+                             x-on:drop.prevent="handleDrop({{ $i }})"
+                             :class="overIndex === {{ $i }} ? 'h-14 m-2 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : 'h-2'"></div>
                         <div wire:key="block-{{ $i }}"
                              wire:click="select({{ $i }})"
+                             draggable="true"
+                             x-on:dragstart="dragType = 'move'; dragFrom = {{ $i }}; $event.dataTransfer.effectAllowed = 'move'"
+                             x-on:dragend="reset()"
                              class="group/blk relative cursor-pointer border-2 transition {{ $selected === $i ? 'border-amber-500' : 'border-transparent hover:border-amber-300' }}">
                             {{-- Floating toolbar --}}
                             <div class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg bg-stone-900/90 p-0.5 text-white opacity-0 shadow-lg transition group-hover/blk:opacity-100 {{ $selected === $i ? '!opacity-100' : '' }}">
-                                <span class="px-2 text-[11px] font-medium text-stone-300">{{ $labels[$block['type']] ?? $block['type'] }}</span>
+                                <span class="flex cursor-grab items-center gap-1 px-2 text-[11px] font-medium text-stone-300 active:cursor-grabbing">@svg('heroicon-o-bars-2', 'h-3.5 w-3.5') {{ $labels[$block['type']] ?? $block['type'] }}</span>
                                 <button wire:click.stop="moveUp({{ $i }})" title="Move up" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-up', 'h-3.5 w-3.5')</button>
                                 <button wire:click.stop="moveDown({{ $i }})" title="Move down" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-chevron-down', 'h-3.5 w-3.5')</button>
                                 <button wire:click.stop="duplicate({{ $i }})" title="Duplicate" class="rounded p-1 hover:bg-white/15">@svg('heroicon-o-document-duplicate', 'h-3.5 w-3.5')</button>
@@ -85,12 +113,24 @@
                             </div>
                         </div>
                     @empty
-                        <div class="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center">
+                        <div class="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-10 text-center"
+                             x-on:dragover.prevent="overIndex = 0"
+                             x-on:drop.prevent="handleDrop(0)"
+                             :class="overIndex === 0 && dragType ? 'bg-amber-50 ring-2 ring-inset ring-amber-300' : ''">
                             @svg('heroicon-o-square-3-stack-3d', 'h-10 w-10 text-stone-300')
                             <p class="text-stone-500">Your page is empty.</p>
-                            <p class="text-sm text-stone-400">Pick a widget from the left to start building.</p>
+                            <p class="text-sm text-stone-400">Drag a widget here, or click one on the left to start building.</p>
                         </div>
                     @endforelse
+
+                    {{-- Final drop zone (append to end) --}}
+                    @if (count($blocks) > 0)
+                        <div class="transition-all"
+                             x-show="dragType !== null"
+                             x-on:dragover.prevent="overIndex = {{ count($blocks) }}"
+                             x-on:drop.prevent="handleDrop({{ count($blocks) }})"
+                             :class="overIndex === {{ count($blocks) }} ? 'h-14 m-2 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50' : 'h-6'"></div>
+                    @endif
                 </div>
             </div>
         </main>
