@@ -7,5 +7,5 @@
     };
 @endphp
 <div class="cms-prose {{ $max }} leading-8 text-stone-700">
-    {!! \Filament\Forms\Components\RichEditor\RichContentRenderer::make($content ?? '')->toHtml() !!}
+    {!! \App\Support\RichText::render($content ?? null) !!}
 </div>

@@ -14,7 +14,7 @@
                         <span class="ml-4 text-stone-400 transition group-open:rotate-180">&#9662;</span>
                     </summary>
                     <div class="cms-prose mt-3 leading-7 text-stone-600">
-                        {!! \Filament\Forms\Components\RichEditor\RichContentRenderer::make($item['answer'] ?? '')->toHtml() !!}
+                        {!! \App\Support\RichText::render($item['answer'] ?? null) !!}
                     </div>
                 </details>
             @endforeach

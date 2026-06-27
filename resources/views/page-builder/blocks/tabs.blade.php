@@ -16,7 +16,7 @@
         <div class="pt-5">
             @foreach ($items as $item)
                 <div data-pb-panel="{{ $loop->index }}" class="cms-prose leading-7 text-stone-700 {{ ! $loop->first ? 'pb-tab-hidden' : '' }}">
-                    {!! \Filament\Forms\Components\RichEditor\RichContentRenderer::make($item['content'] ?? '')->toHtml() !!}
+                    {!! \App\Support\RichText::render($item['content'] ?? null) !!}
                 </div>
             @endforeach
         </div>

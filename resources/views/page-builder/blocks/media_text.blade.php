@@ -17,7 +17,7 @@
             <h2 class="text-3xl font-semibold tracking-tight text-stone-950">{{ $heading }}</h2>
         @endif
         <div class="cms-prose mt-3 leading-8 text-stone-700">
-            {!! \Filament\Forms\Components\RichEditor\RichContentRenderer::make($body ?? '')->toHtml() !!}
+            {!! \App\Support\RichText::render($body ?? null) !!}
         </div>
         @if (! empty($button_label))
             <a href="{{ $button_url ?? '#' }}" class="pb-btn-primary mt-5 inline-flex rounded-full px-5 py-3 text-sm font-medium transition">{{ $button_label }}</a>

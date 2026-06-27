@@ -404,6 +404,24 @@ class PageDesignerTest extends TestCase
             ->assertSeeHtml('cv-1.data.blocks.0');
     }
 
+    public function test_the_canvas_renders_every_block_type_without_error(): void
+    {
+        $this->actingAs($this->owner);
+
+        $content = [];
+        foreach (array_keys(\App\PageBuilder\PageBuilder::paletteMeta()) as $name) {
+            $content[] = ['type' => $name, 'data' => \App\PageBuilder\PageBuilder::defaultData($name)];
+        }
+        $this->page->forceFill(['content' => $content])->save();
+
+        // Mounting renders the full recursive canvas + the inspector for the
+        // first selection; any block that breaks rendering would throw here.
+        Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page->fresh()])
+            ->assertCount('blocks', count($content))
+            ->call('select', '0')
+            ->assertOk();
+    }
+
     public function test_users_without_access_to_the_site_are_forbidden(): void
     {
         $stranger = User::query()->create([
