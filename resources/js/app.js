@@ -142,6 +142,15 @@ function initCountdowns() {
 }
 
 function initPageBuilder() {
+    // Inside the visual designer everything is shown statically: entrance
+    // animations, counters, carousels and countdowns are for the live site.
+    // The editor re-renders the canvas on every edit, and the entrance-animation
+    // CSS would otherwise hide freshly re-rendered elements (opacity 0) — making
+    // animated elements vanish while you build. They still play on the live site.
+    if (document.body.hasAttribute('data-designer')) {
+        return;
+    }
+
     initPageBuilderAnimations();
     initCounters();
     initCarousels();

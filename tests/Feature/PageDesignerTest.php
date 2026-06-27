@@ -422,6 +422,17 @@ class PageDesignerTest extends TestCase
             ->assertOk();
     }
 
+    public function test_designer_marks_itself_so_entrance_animations_dont_hide_elements(): void
+    {
+        // The designer body carries data-designer; app.js uses it to skip the
+        // entrance-animation hiding (which would otherwise make animated
+        // elements vanish on every canvas re-render while building).
+        $this->actingAs($this->owner)
+            ->get(route('pages.designer', ['site' => $this->site, 'page' => $this->page]))
+            ->assertOk()
+            ->assertSee('data-designer', false);
+    }
+
     public function test_users_without_access_to_the_site_are_forbidden(): void
     {
         $stranger = User::query()->create([
