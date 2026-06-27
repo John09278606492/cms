@@ -159,9 +159,13 @@ class PageDesignerTest extends TestCase
 
         Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
             ->call('select', '0')
+            // Elementor-style Content / Style / Advanced tabs.
             ->assertSee('Content')
-            ->assertSee('Level')   // a heading field label
-            ->assertSee('Design');
+            ->assertSee('Style')
+            ->assertSee('Advanced')
+            ->assertSee('Level')        // a heading content field
+            ->assertSee('Background')   // a Style-tab group
+            ->assertSee('Spacing');     // an Advanced-tab group
     }
 
     public function test_repeater_items_can_be_added_and_removed(): void

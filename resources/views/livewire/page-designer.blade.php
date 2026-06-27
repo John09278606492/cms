@@ -108,9 +108,6 @@
 
         {{-- Inspector --}}
         <aside class="w-80 shrink-0 overflow-y-auto border-l border-stone-200 bg-white">
-            <div class="border-b border-stone-200 px-4 py-3">
-                <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Inspector</p>
-            </div>
             @php $sel = $this->blockAt($selectedPath); @endphp
             @if ($sel)
                 @php
@@ -120,78 +117,109 @@
                     $isNested = str_contains((string) $selectedPath, '.data.');
                     $parentPath = $isNested ? strstr((string) $selectedPath, '.data.', true) : null;
                 @endphp
-                <div wire:key="inspector-{{ $selectedPath }}" class="p-4">
-                    @if ($isNested && $parentPath !== null)
-                        <button wire:click="select('{{ $parentPath }}')" class="mb-3 inline-flex items-center gap-1 text-xs font-medium text-amber-700 hover:text-amber-800">
-                            @svg('heroicon-o-arrow-up-left', 'h-3.5 w-3.5') Back to container
-                        </button>
-                    @endif
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-base font-semibold text-stone-900">{{ $labels[$sel['type']] ?? $sel['type'] }}</h3>
+                @php
+                    $designByGroup = collect(\App\PageBuilder\BlockFields::design())->groupBy('group');
+                    $styleGroups = ['Background', 'Typography', 'Border & shadow'];
+                    $advancedGroups = ['Size & position', 'Spacing', 'Effects & visibility'];
+                    $isContainer = in_array($sel['type'], ['container', 'columns'], true);
+                @endphp
+                <div wire:key="inspector-{{ $selectedPath }}" x-data="{ tab: 'content' }">
+                    {{-- Element header + actions --}}
+                    <div class="border-b border-stone-200 p-3">
+                        @if ($isNested && $parentPath !== null)
+                            <button wire:click="select('{{ $parentPath }}')" class="mb-2 inline-flex items-center gap-1 text-xs font-medium text-amber-700 hover:text-amber-800">
+                                @svg('heroicon-o-arrow-up-left', 'h-3.5 w-3.5') Back to container
+                            </button>
+                        @endif
+                        <h3 class="text-sm font-semibold text-stone-900">{{ $labels[$sel['type']] ?? $sel['type'] }}</h3>
+                        <div class="mt-2 grid grid-cols-4 gap-1.5">
+                            <button wire:click="moveUp('{{ $selectedPath }}')" title="Move up" class="rounded-lg border border-stone-200 py-1.5 hover:bg-stone-50">@svg('heroicon-o-chevron-up', 'mx-auto h-4 w-4')</button>
+                            <button wire:click="moveDown('{{ $selectedPath }}')" title="Move down" class="rounded-lg border border-stone-200 py-1.5 hover:bg-stone-50">@svg('heroicon-o-chevron-down', 'mx-auto h-4 w-4')</button>
+                            <button wire:click="duplicate('{{ $selectedPath }}')" title="Duplicate" class="rounded-lg border border-stone-200 py-1.5 hover:bg-stone-50">@svg('heroicon-o-document-duplicate', 'mx-auto h-4 w-4')</button>
+                            <button wire:click="remove('{{ $selectedPath }}')" title="Delete" class="rounded-lg border border-red-200 py-1.5 text-red-600 hover:bg-red-50">@svg('heroicon-o-trash', 'mx-auto h-4 w-4')</button>
+                        </div>
                     </div>
-                    <div class="mt-3 grid grid-cols-4 gap-1.5">
-                        <button wire:click="moveUp('{{ $selectedPath }}')" title="Move up" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-chevron-up', 'mx-auto h-4 w-4')</button>
-                        <button wire:click="moveDown('{{ $selectedPath }}')" title="Move down" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-chevron-down', 'mx-auto h-4 w-4')</button>
-                        <button wire:click="duplicate('{{ $selectedPath }}')" title="Duplicate" class="rounded-lg border border-stone-200 py-2 hover:bg-stone-50">@svg('heroicon-o-document-duplicate', 'mx-auto h-4 w-4')</button>
-                        <button wire:click="remove('{{ $selectedPath }}')" title="Delete" class="rounded-lg border border-red-200 py-2 text-red-600 hover:bg-red-50">@svg('heroicon-o-trash', 'mx-auto h-4 w-4')</button>
+
+                    {{-- Content / Style / Advanced tabs (Elementor-style) --}}
+                    <div class="sticky top-0 z-10 flex border-b border-stone-200 bg-white text-sm font-medium">
+                        @foreach (['content' => 'Content', 'style' => 'Style', 'advanced' => 'Advanced'] as $t => $tlabel)
+                            <button type="button" x-on:click="tab = '{{ $t }}'"
+                                    class="flex-1 border-b-2 py-2.5 transition"
+                                    :class="tab === '{{ $t }}' ? 'border-amber-500 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-800'">{{ $tlabel }}</button>
+                        @endforeach
                     </div>
 
-                    {{-- Content fields --}}
-                    @if (! empty($contentFields))
-                        <div class="mt-5 space-y-3">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Content</p>
-                            @foreach ($contentFields as $field)
-                                @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
-                            @endforeach
-                        </div>
-                    @endif
-
-                    {{-- Container: manage the widgets inside it --}}
-                    @if ($sel['type'] === 'container')
-                        <div class="mt-5 space-y-2">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Contents</p>
-                            <div class="rounded-lg border border-stone-200 bg-stone-50 p-2.5">
-                                @include('livewire.partials.child-list', ['listPath' => $selectedPath . '.data.blocks', 'childBlocks' => $selData['blocks'] ?? [], 'labels' => $labels])
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Columns container: manage the widgets inside each column --}}
-                    @if ($sel['type'] === 'columns')
-                        @php $cols = is_array($selData['columns'] ?? null) ? $selData['columns'] : []; @endphp
-                        <div class="mt-5 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Columns &amp; contents</p>
-                                <button wire:click="addColumn('{{ $selectedPath }}')" class="text-xs font-medium text-amber-700 hover:text-amber-800">+ Column</button>
-                            </div>
-                            @foreach ($cols as $c => $col)
-                                <div wire:key="col-{{ $selectedPath }}-{{ $c }}" class="rounded-lg border border-stone-200 bg-stone-50 p-2.5">
-                                    <div class="mb-1.5 flex items-center justify-between">
-                                        <span class="text-[11px] font-semibold uppercase tracking-wide text-stone-400">Column {{ $c + 1 }}</span>
-                                        @if (count($cols) > 1)
-                                            <button wire:click="removeColumn('{{ $selectedPath }}', {{ $c }})" class="text-xs text-red-500 hover:text-red-700">Remove</button>
-                                        @endif
-                                    </div>
-                                    @include('livewire.partials.child-list', ['listPath' => $selectedPath . '.data.columns.' . $c . '.blocks', 'childBlocks' => is_array($col['blocks'] ?? null) ? $col['blocks'] : [], 'labels' => $labels])
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    {{-- Design fields (collapsible) --}}
-                    <div x-data="{ open: false }" class="mt-5 border-t border-stone-200 pt-4">
-                        <button type="button" x-on:click="open = !open" class="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wider text-stone-400 hover:text-stone-600">
-                            <span>Design</span>
-                            <span x-text="open ? '–' : '+'"></span>
-                        </button>
-                        <div x-show="open" x-cloak class="mt-3 space-y-4">
-                            @foreach (collect(\App\PageBuilder\BlockFields::design())->groupBy('group') as $group => $fields)
-                                <div class="space-y-2.5">
-                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-stone-400">{{ $group }}</p>
-                                    @foreach ($fields as $field)
+                    <div class="p-4">
+                        {{-- CONTENT TAB --}}
+                        <div x-show="tab === 'content'" class="space-y-5">
+                            @if (! empty($contentFields))
+                                <div class="space-y-3">
+                                    @foreach ($contentFields as $field)
                                         @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
                                     @endforeach
                                 </div>
+                            @endif
+
+                            @if ($sel['type'] === 'container')
+                                <div class="space-y-2">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Contents</p>
+                                    <div class="rounded-lg border border-stone-200 bg-stone-50 p-2.5">
+                                        @include('livewire.partials.child-list', ['listPath' => $selectedPath . '.data.blocks', 'childBlocks' => $selData['blocks'] ?? [], 'labels' => $labels])
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if ($sel['type'] === 'columns')
+                                @php $cols = is_array($selData['columns'] ?? null) ? $selData['columns'] : []; @endphp
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-stone-400">Columns &amp; contents</p>
+                                        <button wire:click="addColumn('{{ $selectedPath }}')" class="text-xs font-medium text-amber-700 hover:text-amber-800">+ Column</button>
+                                    </div>
+                                    @foreach ($cols as $c => $col)
+                                        <div wire:key="col-{{ $selectedPath }}-{{ $c }}" class="rounded-lg border border-stone-200 bg-stone-50 p-2.5">
+                                            <div class="mb-1.5 flex items-center justify-between">
+                                                <span class="text-[11px] font-semibold uppercase tracking-wide text-stone-400">Column {{ $c + 1 }}</span>
+                                                @if (count($cols) > 1)
+                                                    <button wire:click="removeColumn('{{ $selectedPath }}', {{ $c }})" class="text-xs text-red-500 hover:text-red-700">Remove</button>
+                                                @endif
+                                            </div>
+                                            @include('livewire.partials.child-list', ['listPath' => $selectedPath . '.data.columns.' . $c . '.blocks', 'childBlocks' => is_array($col['blocks'] ?? null) ? $col['blocks'] : [], 'labels' => $labels])
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            @if (empty($contentFields) && ! $isContainer)
+                                <p class="text-xs leading-5 text-stone-400">This element has no content options — style it in the <button type="button" x-on:click="tab = 'style'" class="font-medium text-amber-700">Style</button> and <button type="button" x-on:click="tab = 'advanced'" class="font-medium text-amber-700">Advanced</button> tabs.</p>
+                            @endif
+                        </div>
+
+                        {{-- STYLE TAB --}}
+                        <div x-show="tab === 'style'" x-cloak class="space-y-4">
+                            @foreach ($styleGroups as $group)
+                                @if ($designByGroup->has($group))
+                                    <div class="space-y-2.5">
+                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-stone-400">{{ $group }}</p>
+                                        @foreach ($designByGroup[$group] as $field)
+                                            @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
+                                        @endforeach
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+
+                        {{-- ADVANCED TAB --}}
+                        <div x-show="tab === 'advanced'" x-cloak class="space-y-4">
+                            @foreach ($advancedGroups as $group)
+                                @if ($designByGroup->has($group))
+                                    <div class="space-y-2.5">
+                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-stone-400">{{ $group }}</p>
+                                        @foreach ($designByGroup[$group] as $field)
+                                            @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
+                                        @endforeach
+                                    </div>
+                                @endif
                             @endforeach
                         </div>
                     </div>
