@@ -29,35 +29,53 @@ class BlockFields
     {
         $space = ['none' => 'None', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large'];
 
-        return [
-            ['key' => '_w', 'label' => 'Width (e.g. 480px or 60%)', 'type' => 'text'],
-            ['key' => '_w_tablet', 'label' => 'Width on tablet', 'type' => 'text'],
-            ['key' => '_w_mobile', 'label' => 'Width on mobile', 'type' => 'text'],
-            ['key' => '_align_mobile', 'label' => 'Text alignment on mobile', 'type' => 'select', 'options' => ['' => 'Same as desktop', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
-            ['key' => '_minh', 'label' => 'Min height (e.g. 320px)', 'type' => 'text'],
-            ['key' => '_self', 'label' => 'Box alignment', 'type' => 'select', 'options' => ['' => 'Default', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
-            ['key' => '_offset_x', 'label' => 'Nudge right / left (e.g. 20px, -30px)', 'type' => 'text'],
-            ['key' => '_offset_y', 'label' => 'Nudge down / up (e.g. -40px)', 'type' => 'text'],
-            ['key' => '_z', 'label' => 'Layer (front/back)', 'type' => 'number'],
-            ['key' => '_bg', 'label' => 'Background colour', 'type' => 'color'],
-            ['key' => '_grad_to', 'label' => 'Gradient to', 'type' => 'color'],
-            ['key' => '_text_color', 'label' => 'Text colour', 'type' => 'color'],
-            ['key' => '_pad', 'label' => 'Vertical padding', 'type' => 'select', 'options' => $space],
-            ['key' => '_padx', 'label' => 'Horizontal padding', 'type' => 'select', 'options' => $space],
-            ['key' => '_mt', 'label' => 'Margin top', 'type' => 'select', 'options' => $space],
-            ['key' => '_mb', 'label' => 'Margin bottom', 'type' => 'select', 'options' => $space],
-            ['key' => '_width', 'label' => 'Width', 'type' => 'select', 'options' => ['default' => 'Default', 'narrow' => 'Narrow', 'wide' => 'Wide', 'full' => 'Full width']],
-            ['key' => '_align', 'label' => 'Alignment', 'type' => 'select', 'options' => ['' => 'Inherit', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
-            ['key' => '_radius', 'label' => 'Rounded corners', 'type' => 'select', 'options' => ['none' => 'None (square)', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large', 'full' => 'Pill / circle']],
-            ['key' => '_radius_custom', 'label' => 'Custom corners (e.g. 12px or 20px 0 20px 0)', 'type' => 'text'],
-            ['key' => '_shadow', 'label' => 'Shadow', 'type' => 'select', 'options' => $space],
-            ['key' => '_border_width', 'label' => 'Border width', 'type' => 'select', 'options' => ['none' => 'None', '1' => '1px', '2' => '2px', '4' => '4px']],
-            ['key' => '_border_color', 'label' => 'Border colour', 'type' => 'color'],
-            ['key' => '_anim', 'label' => 'Entrance animation', 'type' => 'select', 'options' => ['none' => 'None', 'fade' => 'Fade in', 'fade-up' => 'Fade up', 'fade-down' => 'Fade down', 'zoom' => 'Zoom in', 'slide-left' => 'Slide from right', 'slide-right' => 'Slide from left']],
-            ['key' => '_hide_mobile', 'label' => 'Hide on mobile', 'type' => 'toggle'],
-            ['key' => '_hide_tablet', 'label' => 'Hide on tablet', 'type' => 'toggle'],
-            ['key' => '_hide_desktop', 'label' => 'Hide on desktop', 'type' => 'toggle'],
-        ];
+        $g = fn (string $group, array $fields): array => array_map(fn ($f) => $f + ['group' => $group], $fields);
+
+        return array_merge(
+            $g('Size & position', [
+                ['key' => '_w', 'label' => 'Width (e.g. 480px or 60%)', 'type' => 'text'],
+                ['key' => '_w_tablet', 'label' => 'Width on tablet', 'type' => 'text'],
+                ['key' => '_w_mobile', 'label' => 'Width on mobile', 'type' => 'text'],
+                ['key' => '_minh', 'label' => 'Min height (e.g. 320px)', 'type' => 'text'],
+                ['key' => '_width', 'label' => 'Container width', 'type' => 'select', 'options' => ['default' => 'Default', 'narrow' => 'Narrow', 'wide' => 'Wide', 'full' => 'Full width']],
+                ['key' => '_self', 'label' => 'Box alignment', 'type' => 'select', 'options' => ['' => 'Default', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
+                ['key' => '_offset_x', 'label' => 'Nudge right / left (e.g. 20px, -30px)', 'type' => 'text'],
+                ['key' => '_offset_y', 'label' => 'Nudge down / up (e.g. -40px)', 'type' => 'text'],
+                ['key' => '_z', 'label' => 'Layer (front/back)', 'type' => 'number'],
+            ]),
+            $g('Background', [
+                ['key' => '_bg', 'label' => 'Background colour', 'type' => 'color'],
+                ['key' => '_grad_to', 'label' => 'Gradient to', 'type' => 'color'],
+                ['key' => '_bg_image', 'label' => 'Background image', 'type' => 'image'],
+                ['key' => '_overlay', 'label' => 'Image overlay', 'type' => 'select', 'options' => ['none' => 'None', 'light' => 'Light', 'dark' => 'Dark']],
+            ]),
+            $g('Typography', [
+                ['key' => '_text_color', 'label' => 'Text colour', 'type' => 'color'],
+                ['key' => '_font_size', 'label' => 'Text size', 'type' => 'select', 'options' => ['default' => 'Default', 'sm' => 'Small', 'base' => 'Base', 'lg' => 'Large', 'xl' => 'Extra large']],
+                ['key' => '_font_weight', 'label' => 'Text weight', 'type' => 'select', 'options' => ['default' => 'Default', 'normal' => 'Normal', 'medium' => 'Medium', 'semibold' => 'Semibold', 'bold' => 'Bold']],
+                ['key' => '_align', 'label' => 'Text alignment', 'type' => 'select', 'options' => ['' => 'Inherit', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
+                ['key' => '_align_mobile', 'label' => 'Text alignment on mobile', 'type' => 'select', 'options' => ['' => 'Same as desktop', 'left' => 'Left', 'center' => 'Center', 'right' => 'Right']],
+            ]),
+            $g('Spacing', [
+                ['key' => '_pad', 'label' => 'Vertical padding', 'type' => 'select', 'options' => $space],
+                ['key' => '_padx', 'label' => 'Horizontal padding', 'type' => 'select', 'options' => $space],
+                ['key' => '_mt', 'label' => 'Margin top', 'type' => 'select', 'options' => $space],
+                ['key' => '_mb', 'label' => 'Margin bottom', 'type' => 'select', 'options' => $space],
+            ]),
+            $g('Border & shadow', [
+                ['key' => '_radius', 'label' => 'Rounded corners', 'type' => 'select', 'options' => ['none' => 'None (square)', 'sm' => 'Small', 'md' => 'Medium', 'lg' => 'Large', 'xl' => 'Extra large', 'full' => 'Pill / circle']],
+                ['key' => '_radius_custom', 'label' => 'Custom corners (e.g. 12px or 20px 0 20px 0)', 'type' => 'text'],
+                ['key' => '_shadow', 'label' => 'Shadow', 'type' => 'select', 'options' => $space],
+                ['key' => '_border_width', 'label' => 'Border width', 'type' => 'select', 'options' => ['none' => 'None', '1' => '1px', '2' => '2px', '4' => '4px']],
+                ['key' => '_border_color', 'label' => 'Border colour', 'type' => 'color'],
+            ]),
+            $g('Effects & visibility', [
+                ['key' => '_anim', 'label' => 'Entrance animation', 'type' => 'select', 'options' => ['none' => 'None', 'fade' => 'Fade in', 'fade-up' => 'Fade up', 'fade-down' => 'Fade down', 'zoom' => 'Zoom in', 'slide-left' => 'Slide from right', 'slide-right' => 'Slide from left']],
+                ['key' => '_hide_mobile', 'label' => 'Hide on mobile', 'type' => 'toggle'],
+                ['key' => '_hide_tablet', 'label' => 'Hide on tablet', 'type' => 'toggle'],
+                ['key' => '_hide_desktop', 'label' => 'Hide on desktop', 'type' => 'toggle'],
+            ]),
+        );
     }
 
     protected static function align(): array

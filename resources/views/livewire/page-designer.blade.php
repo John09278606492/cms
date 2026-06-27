@@ -184,9 +184,14 @@
                             <span>Design</span>
                             <span x-text="open ? '–' : '+'"></span>
                         </button>
-                        <div x-show="open" x-cloak class="mt-3 space-y-3">
-                            @foreach (\App\PageBuilder\BlockFields::design() as $field)
-                                @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
+                        <div x-show="open" x-cloak class="mt-3 space-y-4">
+                            @foreach (collect(\App\PageBuilder\BlockFields::design())->groupBy('group') as $group => $fields)
+                                <div class="space-y-2.5">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-stone-400">{{ $group }}</p>
+                                    @foreach ($fields as $field)
+                                        @include('livewire.partials.inspector-field', ['field' => $field, 'path' => $selPath, 'data' => $selData])
+                                    @endforeach
+                                </div>
                             @endforeach
                         </div>
                     </div>

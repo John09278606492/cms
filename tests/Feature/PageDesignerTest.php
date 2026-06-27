@@ -312,6 +312,21 @@ class PageDesignerTest extends TestCase
             ->assertSet('blocks.1.data.image', null);
     }
 
+    public function test_a_background_image_can_be_set_on_any_block_via_the_design_panel(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->owner);
+
+        $component = Livewire::test(PageDesigner::class, ['site' => $this->site, 'page' => $this->page])
+            ->call('addBlock', 'heading')   // selectedPath '1'
+            ->set('pendingUploads._bg_image', UploadedFile::fake()->image('bg.jpg'));
+
+        $path = $component->get('blocks.1.data._bg_image');
+
+        $this->assertNotEmpty($path);
+        Storage::disk('public')->assertExists($path);
+    }
+
     public function test_multiple_images_append_to_a_gallery_and_can_be_removed(): void
     {
         Storage::fake('public');

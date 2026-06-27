@@ -36,6 +36,21 @@ class PageBuilderDesignTest extends TestCase
         return $this->get("/sites/{$site->slug}")->assertOk()->getContent();
     }
 
+    public function test_every_design_control_the_renderer_supports_is_customizable(): void
+    {
+        // Guards "everything customizable": every _-prefixed design key the
+        // renderer reads must be exposed in the visual designer's inspector.
+        $renderer = file_get_contents(resource_path('views/components/page-builder.blade.php'));
+        preg_match_all('/\$data\[\'(_\w+)\'\]/', $renderer, $m);
+        $rendererKeys = array_values(array_unique($m[1]));
+
+        $inspectorKeys = collect(\App\PageBuilder\BlockFields::design())->pluck('key')->all();
+
+        $missing = array_values(array_diff($rendererKeys, $inspectorKeys));
+
+        $this->assertSame([], $missing, 'Design controls the renderer supports but the designer cannot edit: ' . implode(', ', $missing));
+    }
+
     public function test_gradient_background_renders(): void
     {
         $html = $this->renderPageWith(['_bg' => '#0f172a', '_grad_to' => '#7c3aed', '_pad' => 'lg']);
